@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 
 # could divide the list of ancestors in namespaces
 def parse_ontology(obo_file_path):
@@ -42,19 +43,75 @@ def parse_ontology(obo_file_path):
 
     return go_terms, alts
 
-def parse_blast(blast_file, prot_id):
+#takes a blast output and returns the corresponding python dictionary
+def parse_blast(blast_file):
     data = pd.read_csv(blast_file, sep='\t', names=['cafa_id', 'uniprot_id', 'identity', 'alignment_leght',
      'mismatch', 'gap_opens', 'query_start', 'query_end', 'sub_start', 'sub_end', 'e_value', 'bit_score'])
     
     blast_dict = dict()
 
-    fil = data["cafa_id"] == prot_id
-    for row in data[fil].loc[:, ['uniprot_id', 'e_value', 'bit_score']].itertuples():
-        blast_dict[row[1]] = {'e_value': row[2], 'bit_score': row[3]}
-        
-
+    for row in data.loc[:, ['cafa_id', 'uniprot_id', 'e_value', 'bit_score']].itertuples():
+        blast_dict.setdefault(row[1], [])
+        if row[3] > 0.001:
+            blast_dict[row[1]].append([row[2], row[3], row[4]])
     return blast_dict
 
-parse_blast("/home/davide/Documenti/training/blast_pred.txt", "T100900000100")
+# takes a blast dict b_dict={cafa_id: [uniprot_id, e_value, bit_score]} and returns a dictionary
+# using uniprot_id as key uni_dict = {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])}
+def reverse_dict(blast_dict):
+    rev_dict = dict()
+    for cafa_id, v in blast_dict.items():
+        for uniprot_id, e_value, bit_score in v:
+            rev_dict.setdefault(uniprot_id, (set(),[]))
+            rev_dict[uniprot_id][1].append([cafa_id, e_value, bit_score])
+    return rev_dict
 
-def parse_goa(goa_file):
+#Parses a GOA file and adds to the uniprot_dict(obtained in reverse_dict) a set of associated go-terms
+def parse_goa(goa_file, rev_dict):
+    with open(goa_file) as f:
+        for line in f:
+            uniprot_id, _, terms = line.split()
+            for go_list in terms.split(';'):
+                l = go_list.split(',')
+                for i in range(1,len(l)):
+                    if uniprot_id in rev_dict:
+                        rev_dict[uniprot_id][0].add(l[i])
+                        #print(uniprot_id)
+                    #else:
+                        #print(uniprot_id, "is not contained in the dictionary")
+    k_list = []
+    for k, v in rev_dict.items():
+        if len(v[0]) == 0:
+            k_list.append(k)
+            
+    for k in k_list:
+        rev_dict.pop(k)
+    return rev_dict
+
+# takes a dictionary uni_dict = {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])} and
+# returns a dictionary query_dict = {query_id: {uniprot_id: bit_score}} and a gt_dict = {uniprot_id: go_term_set}
+def return_to_query(sbj_dict):
+    query_dict = dict()
+    gt_dict = dict()
+    for k, v in sbj_dict.items():
+        for cafa_id, e_value, bit_score in v[1]:
+            query_dict.setdefault(cafa_id, {})
+            query_dict[cafa_id][k] = bit_score
+        gt_dict[k] = v[0]
+    return query_dict, gt_dict
+            
+            
+
+blast_dict = parse_blast("/home/davide/Documenti/training/blast_pred.txt")
+rev = reverse_dict(blast_dict)
+rev_go = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev)
+query_dict, gt_dict = return_to_query(rev_go)
+
+i=0
+for k,v in query_dict.items():
+    print(k, v)
+    if i == 20:
+        break
+    i += 1
+    
+    
