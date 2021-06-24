@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+from blast_score import *
+import time
 
 # could divide the list of ancestors in namespaces
 def parse_ontology(obo_file_path):
@@ -10,6 +12,7 @@ def parse_ontology(obo_file_path):
     temp_name = ''
     temp_def = ''
     temp_alt_id = []
+    rel_list = []
     with open(obo_file_path) as f:
         rel_lost =  []
         for line in f:
@@ -62,12 +65,12 @@ def reverse_dict(blast_dict):
     rev_dict = dict()
     for cafa_id, v in blast_dict.items():
         for uniprot_id, e_value, bit_score in v:
-            rev_dict.setdefault(uniprot_id, (set(),[]))
+            rev_dict.setdefault(uniprot_id, [set(),[]])
             rev_dict[uniprot_id][1].append([cafa_id, e_value, bit_score])
     return rev_dict
 
 #Parses a GOA file and adds to the uniprot_dict(obtained in reverse_dict) a set of associated go-terms
-def parse_goa(goa_file, rev_dict):
+def parse_goa(goa_file, rev_dict, ont_dict):
     with open(goa_file) as f:
         for line in f:
             uniprot_id, _, terms = line.split()
@@ -83,6 +86,8 @@ def parse_goa(goa_file, rev_dict):
     for k, v in rev_dict.items():
         if len(v[0]) == 0:
             k_list.append(k)
+        else:
+            v[0] = propagate_terms(v[0], ont_dict) # PROPAGATION
             
     for k in k_list:
         rev_dict.pop(k)
@@ -93,25 +98,38 @@ def parse_goa(goa_file, rev_dict):
 def return_to_query(sbj_dict):
     query_dict = dict()
     gt_dict = dict()
+    go_term_set = set()
     for k, v in sbj_dict.items():
         for cafa_id, e_value, bit_score in v[1]:
             query_dict.setdefault(cafa_id, {})
             query_dict[cafa_id][k] = bit_score
         gt_dict[k] = v[0]
-    return query_dict, gt_dict
+        go_term_set = go_term_set | v[0]
+    return query_dict, gt_dict, go_term_set
             
-            
+def propagate_terms(go_term_set, ont):
+    queue = list(go_term_set)
+    while queue:
+        term = queue.pop(0)
+        parents = ont[term]
+        for p in parents:
+            go_term_set.add(p)
+            queue.append(p)
+    return go_term_set
 
+start = time.time()         
+ont_dict, _ = parse_ontology("/home/davide/Documenti/training/gene_ontology_edit.obo.2018-08-01")
 blast_dict = parse_blast("/home/davide/Documenti/training/blast_pred.txt")
 rev = reverse_dict(blast_dict)
-rev_go = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev)
-query_dict, gt_dict = return_to_query(rev_go)
+rev_go = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev, ont_dict)
+query_dict, gt_dict, go_term_set = return_to_query(rev_go)
+score_dict = blast_score(query_dict, gt_dict, go_term_set)
 
 i=0
-for k,v in query_dict.items():
+for k, v in sorted(score_dict['T100900016300'].items(), key=lambda p:p[1], reverse=True):
     print(k, v)
     if i == 20:
         break
     i += 1
-    
-    
+
+print("time elapsed:",time.time()-start)
