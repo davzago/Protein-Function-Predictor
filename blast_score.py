@@ -14,7 +14,7 @@ def blast_score(bit_score_dict, gt_dict, go_term_set):
                 if term in gt_dict[uniprot_id]:
                     n += bit_score
             score_dict[k][term] = n/d 
-        prediction_to_text(score_dict, k, "predictions/Blast")
+        prediction_to_text(score_dict, k, "predictions/Fake")
         score_dict = dict()
     #return score_dict
         

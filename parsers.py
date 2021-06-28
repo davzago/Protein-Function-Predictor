@@ -90,7 +90,7 @@ def parse_blast(blast_file):
                 count += 1
                 if count > 10000:
                     rev = reverse_dict(blast_dict)
-                    goa_dict = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev, ont_dict)
+                    goa_dict = parse_goa("fake_goa.txt", rev, ont_dict)
                     query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
                     blast_score(query_dict, gt_dict, go_term_set)
                     count = 0
@@ -102,7 +102,7 @@ def parse_blast(blast_file):
                     blast_dict.setdefault(cafa_id, [[uniprot_id, float(e_value), float(bit_score)]])
         #This aswell
         rev = reverse_dict(blast_dict)
-        goa_dict = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev, ont_dict)
+        goa_dict = parse_goa("fake_goa.txt", rev, ont_dict)
         query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
         blast_score(query_dict, gt_dict, go_term_set)
     return blast_dict
@@ -169,7 +169,7 @@ def propagate_terms(go_term_set, ont):
 
 start = time.time()         
 ont_dict, _ = parse_ontology("/home/davide/Documenti/training/gene_ontology_edit.obo.2018-08-01")
-blast_dict = parse_blast("/home/davide/Documenti/training/blast_pred.txt")
+blast_dict = parse_blast("fake_blast.txt")
 """print("blast parsed")
 rev = reverse_dict(blast_dict)
 blast_dict.clear()
