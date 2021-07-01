@@ -8,9 +8,6 @@ def parse_ontology(obo_file_path):
     go_terms = dict()
     alts = dict()
     temp_id = ''
-    temp_namespace = '' 
-    temp_name = ''
-    temp_def = ''
     temp_alt_id = []
     rel_list = []
     with open(obo_file_path) as f:
@@ -30,12 +27,6 @@ def parse_ontology(obo_file_path):
                     temp_id = v
                 elif k == "alt_id" and (v.startswith("GO:") or v.startswith("HP:") or v.startswith("DO:")):
                     temp_alt_id.append(v)
-                elif k == "name":
-                    temp_name = v
-                elif k == "namespace" and v != 'external':
-                    temp_namespace = v
-                elif k == "def":
-                    temp_def = v
                 elif k == "is_a" and (v.startswith("GO:") or v.startswith("HP:") or v.startswith("DO:")):
                     # add (temp_id,v) tuple to the relation list
                     s = v.split('!')[0].strip()
