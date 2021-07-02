@@ -1,10 +1,21 @@
-import pandas as pd
-import os
 from blast_score import *
 import time
 
-# could divide the list of ancestors in namespaces
+# could include part_of of the parents
 def parse_ontology(obo_file_path):
+    """
+    Parses an ontology file and returns the corresponding dictionary
+
+    Parameters
+    ----------
+    obo_file_path : str
+        path to the ontology file:
+
+    Returns
+    -------
+    go_dict : dict
+        {go_id : list(parents)}
+    """
     go_terms = dict()
     alts = dict()
     temp_id = ''
@@ -40,6 +51,14 @@ def parse_ontology(obo_file_path):
 # takes a reference file and splits it in a file for each namespace
 # (the uniport ids are also removed because they aren't useful to the evaluation)
 def parse_reference(reference_file):
+    """
+    parses a reference file and returns a file for each different namespace
+
+    Parameters
+    ----------
+    reference_file : str
+        path to the reference file
+    """
     namespaces = dict()
     with open(reference_file) as rf:
         for line in rf:
@@ -56,18 +75,18 @@ def parse_reference(reference_file):
         f.close()
 
 
-#takes a blast output and returns the corresponding python dictionary
-def parse_blast(blast_file):
-    """data = pd.read_csv(blast_file, sep='\t', names=['cafa_id', 'uniprot_id', 'identity', 'alignment_leght',
-     'mismatch', 'gap_opens', 'query_start', 'query_end', 'sub_start', 'sub_end', 'e_value', 'bit_score'])
-    
-    blast_dict = dict()
+def parse_blast(blast_file, goa_file):
+    """
+    Parses the blast file in chunks and return and writes the prediction files using blast_score
 
-    for row in data.loc[:, ['cafa_id', 'uniprot_id', 'e_value', 'bit_score']].itertuples():
-        blast_dict.setdefault(row[1], [])
-        if row[3] < 0.001:
-            blast_dict[row[1]].append([row[2], row[3], row[4]])
-    return blast_dict"""
+    Parameters
+    ----------
+    blast_file : str
+        path to the blast file
+
+    goa_file : str
+        path to the goa file
+    """
     blast_dict = dict()
     with open(blast_file) as f:
         prev_cafa_id = ''
@@ -81,7 +100,7 @@ def parse_blast(blast_file):
                 count += 1
                 if count > 10000:
                     rev = reverse_dict(blast_dict)
-                    goa_dict = parse_goa("fake_goa.txt", rev, ont_dict)
+                    goa_dict = parse_goa(goa_file, rev, ont_dict)
                     query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
                     blast_score(query_dict, gt_dict, go_term_set)
                     count = 0
@@ -93,14 +112,25 @@ def parse_blast(blast_file):
                     blast_dict.setdefault(cafa_id, [[uniprot_id, float(e_value), float(bit_score)]])
         #This aswell
         rev = reverse_dict(blast_dict)
-        goa_dict = parse_goa("fake_goa.txt", rev, ont_dict)
+        goa_dict = parse_goa(goa_file, rev, ont_dict)
         query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
         blast_score(query_dict, gt_dict, go_term_set)
-    return blast_dict
 
-# takes a blast dict b_dict={cafa_id: [uniprot_id, e_value, bit_score]} and returns a dictionary
-# using uniprot_id as key uni_dict = {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])}
+
 def reverse_dict(blast_dict):
+    """
+    takes a dictionary with cafa_id as key and reverses it so the key is uniprot_id
+
+    Parameters
+    ----------
+    blast_dict : dict
+        {cafa_id: [uniprot_id, e_value, bit_score]}
+
+    Returns
+    -------
+    rev_dict : dict
+        {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])}
+    """
     rev_dict = dict()
     for cafa_id in list(blast_dict):
         for uniprot_id, e_value, bit_score in blast_dict[cafa_id]:
@@ -136,6 +166,19 @@ def parse_goa(goa_file, rev_dict, ont_dict):
 # takes a dictionary uni_dict = {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])} and
 # returns a dictionary query_dict = {query_id: {uniprot_id: bit_score}} and a gt_dict = {uniprot_id: go_term_set}
 def return_to_query(sbj_dict):
+    """
+    takes a dictionary with uniprot id as key and switches it back to query id(cafa id) as key
+
+    Parameters
+    ----------
+    sbj_dict : dict
+        {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])}
+
+    Returns
+    -------
+    query_dict : dict 
+        {query_id: {uniprot_id: bit_score}}
+    """
     query_dict = dict()
     gt_dict = dict()
     go_term_set = set()
@@ -148,6 +191,22 @@ def return_to_query(sbj_dict):
     return query_dict, gt_dict, go_term_set
             
 def propagate_terms(go_term_set, ont):
+    """
+    Takes a go term set and adds all the ancestors of each term
+
+    Parameters
+    ----------
+    go_term_set : set
+        set of go terms
+    
+    ont : dict
+        {go_id: list(parents)}
+
+    Returns
+    -------
+    go_term_set
+        set containing go terms and ancestors of the initial input
+    """
     queue = list(go_term_set)
     while queue:
         term = queue.pop(0)
