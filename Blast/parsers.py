@@ -1,5 +1,4 @@
 from blast_score import *
-import time
 
 # could include part_of of the parents
 def parse_ontology(obo_file_path):
@@ -75,7 +74,7 @@ def parse_reference(reference_file):
         f.close()
 
 
-def parse_blast(blast_file, goa_file):
+def parse_blast(blast_file, goa_file, ont_dict, output_path):
     """
     Parses the blast file in chunks and return and writes the prediction files using blast_score
 
@@ -86,11 +85,18 @@ def parse_blast(blast_file, goa_file):
 
     goa_file : str
         path to the goa file
+
+    ont_dict : dict
+        {go_id: list(parents)}
+
+    output_path : str
+        path to the output folder 
     """
     blast_dict = dict()
     with open(blast_file) as f:
         prev_cafa_id = ''
         count = 0
+        i = 1
         for line in f:
             cafa_id, uniprot_id, _, _, _, _, _, _, _, _, e_value, bit_score = line.split()
             ### When having memory problems uncomment ths code and run only this function (will write the prediction file)
@@ -98,11 +104,12 @@ def parse_blast(blast_file, goa_file):
                 prev_cafa_id = cafa_id
             if prev_cafa_id != cafa_id:
                 count += 1
-                if count > 10000:
+                if count > 1000:
                     rev = reverse_dict(blast_dict)
                     goa_dict = parse_goa(goa_file, rev, ont_dict)
                     query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
-                    blast_score(query_dict, gt_dict, go_term_set)
+                    blast_score(query_dict, gt_dict, go_term_set, output_path, i)
+                    i += 1
                     count = 0
                 prev_cafa_id = cafa_id
             if float(e_value) < 0.001:
@@ -114,7 +121,7 @@ def parse_blast(blast_file, goa_file):
         rev = reverse_dict(blast_dict)
         goa_dict = parse_goa(goa_file, rev, ont_dict)
         query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
-        blast_score(query_dict, gt_dict, go_term_set)
+        blast_score(query_dict, gt_dict, go_term_set, output_path, i)
 
 
 def reverse_dict(blast_dict):
@@ -178,6 +185,12 @@ def return_to_query(sbj_dict):
     -------
     query_dict : dict 
         {query_id: {uniprot_id: bit_score}}
+
+    Gt_dict : dict
+        {uniprot_id: go_term_set}
+
+    go_term_set : set
+        set containing all the go terms found in the goa database   
     """
     query_dict = dict()
     gt_dict = dict()
@@ -216,34 +229,4 @@ def propagate_terms(go_term_set, ont):
                 go_term_set.add(p)
                 queue.append(p)
     return go_term_set
-
-start = time.time()         
-ont_dict, _ = parse_ontology("/home/davide/Documenti/training/gene_ontology_edit.obo.2018-08-01")
-blast_dict = parse_blast("fake_blast.txt")
-"""print("blast parsed")
-rev = reverse_dict(blast_dict)
-blast_dict.clear()
-print("dictionary reversed")
-goa_dict = parse_goa("/home/davide/Documenti/training/goa_db_2018_08_exp.dat", rev, ont_dict)
-rev.clear()
-print("goa parsed")
-query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
-goa_dict.clear()
-print("back to query")
-score_dict = blast_score(query_dict, gt_dict, go_term_set)
-print("score calculation")
-prediction_to_text(score_dict, 100)"""
-#parse_reference("/home/davide/Documenti/training/reference_new.txt")
-
-
-#print(blast_dict['T100900012018'])
-
-"""i=0
-for k, v in sorted(score_dict['T100900012018'].items(), key=lambda p:p[1], reverse=True):
-    print(k, v)
-    if i == 20:
-        break
-    i += 1"""
-
-print("time elapsed:",time.time()-start)
 
