@@ -148,6 +148,26 @@ def reverse_dict(blast_dict):
 
 #Parses a GOA file and adds to the uniprot_dict(obtained in reverse_dict) a set of associated go-terms
 def parse_goa(goa_file, rev_dict, ont_dict):
+    """
+    Parses a GOA file and adds to the uniprot_dict(obtained in reverse_dict) a set of associated go-terms
+
+    Parameters
+    ----------
+    goa_file : str
+        Path to the file containing the goa db
+
+    rev_dict : dict
+        {uniprot_id: (go_terms_set,[cafa_id, e_value, bit_score])}
+
+    ont_dict : dict
+        {go_id : list(parents)}
+
+    Returns
+    -------
+    rev_dict : dict
+        same dictionary taken in input with the go terms added adn propagated in the set
+
+    """
     with open(goa_file) as f:
         for line in f:
             uniprot_id, _, terms = line.split()
