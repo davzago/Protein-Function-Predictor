@@ -1,11 +1,26 @@
 from numpy.lib.npyio import save
 from dataset_utils import *
 from parsers import *
+import argparse
+
+parser = argparse.ArgumentParser(description='dataset builder')
+parser.add_argument('ontology_file', help='File containing the ontology')
+parser.add_argument('interpro_file', help='File containing the goa database')
+parser.add_argument('ref_file', help="File containing the cafa id of the proteins that you want to predict")
+parser.add_argument('-output_path', help='Path to the folder where the predction file will be put', default="output")
+args = parser.parse_args()
+
+goa_file = args.goa_file
+output_path = args.output_path
+protein_file = args.protein_file
+obo_file = args.ontology_file
 
 
-interpro_file = "/home/davide/Documenti/training/interpro_parsed.txt"
-ref_file = "/home/davide/Documenti/training/reference_new.txt"
-ontology_file = "/home/davide/Documenti/training/gene_ontology_edit.obo.2018-08-01"
+
+interpro_file = args.interpro_file
+ref_file = args.ref_file
+ontology_file = args.ontology_file
+output_path = args.output_path
 
 ip_set = interpro_ids(interpro_file)
 save_interpro_set(ip_set, "InterPro")
