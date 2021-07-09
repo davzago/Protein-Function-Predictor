@@ -33,6 +33,9 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
 
     go_dict : dict
         {go_id : index}
+
+    prot_dict : dict
+        {uniprot_id : index}
     """
     x_row = []
     x_col = []
@@ -80,7 +83,7 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
     y_train = csr_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
 
-    return x_train, y_train, ip_dict, go_dict
+    return x_train, y_train, ip_dict, go_dict, prot_indexes
 
     
     
@@ -162,13 +165,13 @@ def reverse_dict(dictionary):
     rev : np.array
         array containing for each index the corresponding id
     """
-    rev = np.full(len(dictionary), '')
+    rev = np.empty(len(dictionary), dtype=object)
     for k, v in dictionary.items():
-        rev[v] = k
+        rev[v] = k 
 
     return rev
 
-def save_dataset(x_train, y_train, ip_dict, go_dict, output_path):
+def save_dataset(x_train, y_train, prot_dict, ip_dict, go_dict, output_path, ref_dict):
     """
     takes the dataset and the corresponding dicts and saves it on a text file
 
@@ -180,6 +183,9 @@ def save_dataset(x_train, y_train, ip_dict, go_dict, output_path):
     y_train : csr_matrix
         matrix with rows representing proteins and columns representing go_terms
 
+    prot_dict : dict
+        {prot_id : index}
+
     ip_dict : dict
         {ip_id : index}
 
@@ -187,8 +193,114 @@ def save_dataset(x_train, y_train, ip_dict, go_dict, output_path):
         {go_id : index}
 
     output_path : str
-        Path where to put the output fileg
+        Path where to put the output file
     """
 
+    rev_ip = reverse_dict(ip_dict)
+    rev_go = reverse_dict(go_dict)
+    rev_prot = reverse_dict(prot_dict)
 
 
+    n, m  = x_train.shape
+    p = y_train.shape[1]
+    f = open(output_path+"/dataset.txt", "w")
+    for i in range(0,n):
+        f.write(rev_prot[i] + "\t" + ref_dict[rev_prot[i]][0] + "\t")
+        indexes = x_train[i,:].nonzero()
+        pos = -1 
+        for idx in indexes[1]:
+            pos += 1
+            ip_id = rev_ip[idx]
+            f.write(ip_id)
+            if pos != len(indexes[1]) - 1:
+                f.write('-')
+        f.write('\t')
+        indexes = y_train[i,:].nonzero()
+        pos = -1
+        for idx in indexes[1]:
+            pos += 1
+            go_id = rev_go[idx]
+            f.write(go_id)
+            if pos != len(indexes[1]) - 1:
+                f.write('-')
+        if i != n-1:
+            f.write("\n")
+    f.close()
+    
+
+def parse_dataset(dataset_file, interpro_set, ontology):
+    """
+    Parses a dataset file created with the function save_dataset() and returns the same structures as create_dataset()
+
+    Parameters
+    ----------
+    dataset_file : str
+        path to the dataset file
+
+    interpro_ids_set : set
+        set containing all the interpro ids
+
+    ontology : dict
+        {go_id : list(parents)}
+    
+    Returns
+    -------
+    x_train : csr_matrix
+        a compressed sparse row matrix representing the features for each protein
+
+    y_train : csr_matrix
+        a compressed sparse row matrix representing the ground truth for each go term
+
+    ip_dict : dict
+         {interpro_id : index}
+
+    go_dict : dict
+        {go_id : index}
+
+    prot_dict : dict
+        {uniprot_id : index}
+    """
+            
+    """with open(dataset_file) as f:
+        for line in f:"""
+
+def save_interpro_set(interpro_set, output_path):
+    """
+    Saves on a text file a set containing all the possible interpro ids
+
+    Parameters
+    ----------
+    interpro_set : set
+        set of interpro ids
+
+    output_path : str
+        path where to put the output text file 
+    """
+    f = open(output_path + "/interpro_set.txt", "w")
+    for ip_id in interpro_set:
+        f.write(ip_id + '\n')
+    f.close()
+
+def parse_interpro_set(ip_set_file):
+    """
+    Parses a text file containing all the possible interpro ids and returns the corresponding set
+
+    Parameters
+    ----------
+    ip_set_file : ste
+        path to the interpro ids file
+
+    Returns
+    -------
+    ip_set : set
+        set containing all the possible interpro ids
+    """
+    ip_set = set()
+    with open(ip_set_file) as f:
+        for line in f:
+            ip_set.add(line)
+    return ip_set
+    
+
+
+    
