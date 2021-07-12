@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy.sparse import csc_matrix
 
 def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     """
@@ -81,7 +82,7 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     n_go_terms = len(ontology) 
 
     x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
-    y_train = csr_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
+    y_train = csc_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
 
     return x_train, y_train, ip_dict, go_dict, prot_indexes
 
@@ -99,14 +100,36 @@ def parse_reference(ref_file):
     Returns
     -------
     ref_dict : dict
-        {uniprot_id: (cafa_id, set(go_terms))}
+        {uniprot_id: [cafa_id, set(go_terms)]}
     """
     ref_dict = dict()
     with open(ref_file) as f:
         for line in f:
             cafa_id, go_id, namespace, uniprot_id = line.split()
-            ref_dict.setdefault(uniprot_id, (cafa_id, set()))
+            ref_dict.setdefault(uniprot_id, [cafa_id, set()])
             ref_dict[uniprot_id][1].add(go_id)
+    return ref_dict
+
+def propagate_reference(ref_dict, ont):
+    """
+    Takes a reference dictionary and propagates the go terms associated with each protein
+
+    Parameters
+    ----------
+    ref_dict : dict
+        {uniprot_id: (cafa_id, set(go_terms))}
+
+    ontology : dict
+        {go_id : list(parents)}
+
+    Returns
+    -------
+    ref_dict : dict
+        {uniprot_id: (cafa_id, set(go_terms))}
+    """
+    for k, v in ref_dict.items():
+        v[1] = propagate_terms(v[1], ont)
+
     return ref_dict
 
 def set_ip_indices(interpro_set):
@@ -258,11 +281,55 @@ def parse_dataset(dataset_file, interpro_set, ontology):
         {go_id : index}
 
     prot_dict : dict
-        {uniprot_id : index}
+        {uniprot_id : (cafa_id, index)}
     """
+    ip_dict = set_ip_indices(interpro_set)
+    go_dict = set_ont_indices(ontology)
+    prot_indexes = dict()
+    idx = 0
+    x_row = []
+    x_col = []
+    x_data = []
+    y_row = []
+    y_col = []
+    y_data = []
+
+    X = []
+
+    with open(dataset_file) as f:
+        for line in f:
+            #rowx = np.zeros(shape)
+            uniprot_id, cafa_id, interpro_list, go_id_list = line.split()
+            prot_indexes.setdefault(uniprot_id, (cafa_id, idx))
+            # fill the training set matrix
+            for ip_id in interpro_list.split('-'):
+                x_row.append(idx)
+                x_col.append(ip_dict[ip_id])
+                x_data.append(1)
+            # fill the ground truth matrix
+            for go_id in go_id_list.split('-'):
+                y_row.append(idx)
+                y_col.append(go_dict[go_id])
+                y_data.append(1)
             
-    """with open(dataset_file) as f:
-        for line in f:"""
+            idx += 1
+    
+    x_row = np.array(x_row)
+    x_col = np.array(x_col)
+    x_data = np.array(x_data, dtype='bool')
+    y_row = np.array(y_row)
+    y_col = np.array(y_col)
+    y_data = np.array(y_data, dtype='bool')
+
+    n_prot = idx
+    n_ip_id = len(interpro_set)
+    n_go_terms = len(ontology) 
+
+    x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
+    y_train = csc_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
+
+    return x_train, y_train, ip_dict, go_dict, prot_indexes
+
 
 def save_interpro_set(interpro_set, output_path):
     """
@@ -298,8 +365,35 @@ def parse_interpro_set(ip_set_file):
     ip_set = set()
     with open(ip_set_file) as f:
         for line in f:
-            ip_set.add(line)
+            ip_set.add(line.strip('\n'))
     return ip_set
+
+def propagate_terms(go_term_set, ont):
+    """
+    Takes a go term set and adds all the ancestors of each term
+
+    Parameters
+    ----------
+    go_term_set : set
+        set of go terms
+    
+    ont : dict
+        {go_id: list(parents)}
+
+    Returns
+    -------
+    go_term_set
+        set containing go terms and ancestors of the initial input
+    """
+    queue = list(go_term_set)
+    while queue:
+        term = queue.pop(0)
+        if term in ont:
+            parents = ont[term]
+            for p in parents:
+                go_term_set.add(p)
+                queue.append(p)
+    return go_term_set
     
 
 
