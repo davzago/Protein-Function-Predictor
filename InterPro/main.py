@@ -42,12 +42,17 @@ rest = np.zeros((X_test.shape[0]-3,5), dtype='bool')
 matr = np.concatenate((matr, rest), axis=0)
 prova2 = csc_matrix(matr)"""
 
-print(X_train.toarray().any(), y_train[:500,:].toarray().any())
-clf = BinaryRelevance(LogisticRegression(random_state=42)).fit(X_train[:500,:], y_train[:500,:])
+#print(X_train.toarray().any(), y_train[:500,:].toarray().any())
 
-"""y_pred = clf.predict(X_test)
+y_train, go_dict = remove_unused_go_terms(y_train[:500,:], go_dict)
+print(y_train.shape)
+print("starting training")
+clf = BinaryRelevance(LogisticRegression(random_state=42)).fit(X_train[:500,:], y_train)
+print("end training")
 
-print(precision_score(y_test, y_pred, average='micro'))"""
+y_pred = clf.predict(X_test)
+
+print(precision_score(y_test, y_pred, average='micro'))
 
 
 
