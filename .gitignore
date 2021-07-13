@@ -12,3 +12,5 @@ calculator.py
 predictions/
 
 Blast/output2
+
+*.joblib

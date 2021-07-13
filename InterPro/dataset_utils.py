@@ -395,13 +395,16 @@ def propagate_terms(go_term_set, ont):
                 queue.append(p)
     return go_term_set
 
-def remove_unused_go_terms(y, go_dict):
+def remove_unused_go_terms(y_train, y_test, go_dict):
     """
     removes from the ground truth the columns that ar all zero
 
     Parameters
     ----------
-    y : matrix
+    y_train : matrix
+        matrix where rows correspond to proteins and coumns correspond to go terms
+
+    y_test : matrix
         matrix where rows correspond to proteins and coumns correspond to go terms
 
     go_dict : dictionary
@@ -415,21 +418,19 @@ def remove_unused_go_terms(y, go_dict):
     go_dict : dictionary
         {go_term: index} with rearranged index
     """
-    col_set = []
+
     go_arr = reverse_dict(go_dict)
-    """for j in range(0,len(go_dict)):
-        if y.getcol(j).nnz == 0:
-            col_list.append(j)"""
-    cols = list(set(np.nonzero(y)[1]))
-    print(len(cols))
-    y_new = csc_matrix(y[:,cols])
+    cols = list(set(np.nonzero(y_train)[1]))
+    y_new = csc_matrix(y_train[:,cols])
+    test = csc_matrix(y_test[:,cols])
     go_arr_new = go_arr[cols]
 
     go_dict_new = dict()
     for i in range(0,len(go_arr_new)):
         go_dict_new[go_arr_new[i]] = i
 
-    return y_new, go_dict_new
+    return y_new, test, go_dict_new
+
 
 
     
