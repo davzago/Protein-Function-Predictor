@@ -432,5 +432,49 @@ def remove_unused_go_terms(y_train, y_test, go_dict):
     return y_new, test, go_dict_new
 
 
+def save_dict(dict, output_path, file_name):
+    """
+    Takes a dictionary and saves it on a text file 
+
+    Parameters
+    ----------
+    dict : dictionary
+        {id : index}
+
+    output_path : str
+        path to the output folder
+
+    file_name : str
+        name of the text file
+
+    """
+    with open(output_path + "/" + file_name + ".txt", "w") as f:
+        for k, v in dict.items():
+            f.write(k + '\t' + str(v) + '\n')
+            
+
+def save_prot_dict(dict, output_path, file_name):
+    """
+    Takes a dictionary of proteins and saves it on a text file 
+
+    Parameters
+    ----------
+    dict : dictionary
+        {id : index}
+
+    output_path : str
+        path to the output folder
+
+    file_name : str
+        name of the text file
+
+    """
+    with open(output_path + "/" + file_name + ".txt", "w") as f:
+        for k, v in dict.items():
+            f.write(k + '\t' + v[0] + '\t' + str(v[1]) + '\n')
+
+
+
+
 
     

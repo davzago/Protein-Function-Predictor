@@ -1,0 +1,5 @@
+Precision score: 0.6000519975734466
+Recall score: 0.19159423197318676
+F1 score: 0.29044918633642963
+
+questo è stato fatto con 20 proteine in training (per questo motivo anche molti go terms vengono eliminati in questo caso ne rimangono 740~)

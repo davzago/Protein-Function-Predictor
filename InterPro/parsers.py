@@ -1,4 +1,5 @@
 import time
+from dataset_utils import *
 
 def interpro_ids(IPro_file):
     """
@@ -74,7 +75,7 @@ def parse_ontology(obo_file_path):
 
     return go_terms
 
-def parse_features(dataset_file, interpro_set, ontology):
+def parse_features(dataset_file, interpro_set):
     """
     Parses a dataset file created with the function save_dataset() and returns the same structures as create_dataset()
 
@@ -88,11 +89,8 @@ def parse_features(dataset_file, interpro_set, ontology):
 
     Returns
     -------
-    x_train : csr_matrix
+    X : csr_matrix
         a compressed sparse row matrix representing the features for each protein
-
-    y_train : csr_matrix
-        a compressed sparse row matrix representing the ground truth for each go term
 
     ip_dict : dict
          {interpro_id : index}
@@ -100,18 +98,13 @@ def parse_features(dataset_file, interpro_set, ontology):
     prot_dict : dict
         {uniprot_id : (cafa_id, index)}
     """
+    
     ip_dict = set_ip_indices(interpro_set)
-    go_dict = set_ont_indices(ontology)
     prot_indexes = dict()
     idx = 0
     x_row = []
     x_col = []
     x_data = []
-    y_row = []
-    y_col = []
-    y_data = []
-
-    X = []
 
     with open(dataset_file) as f:
         for line in f:
@@ -123,26 +116,31 @@ def parse_features(dataset_file, interpro_set, ontology):
                 x_row.append(idx)
                 x_col.append(ip_dict[ip_id])
                 x_data.append(1)
-            # fill the ground truth matrix
-            for go_id in go_id_list.split('-'):
-                y_row.append(idx)
-                y_col.append(go_dict[go_id])
-                y_data.append(1)
-            
             idx += 1
     
     x_row = np.array(x_row)
     x_col = np.array(x_col)
     x_data = np.array(x_data, dtype='bool')
-    y_row = np.array(y_row)
-    y_col = np.array(y_col)
-    y_data = np.array(y_data, dtype='bool')
 
     n_prot = idx
     n_ip_id = len(interpro_set)
-    n_go_terms = len(ontology) 
 
     x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
-    y_train = csc_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
 
-    return x_train, y_train, ip_dict, go_dict, prot_indexes
+    return x_train, ip_dict, prot_indexes
+
+def parse_dict(file_path):
+    idx_dict = dict()
+    with open(file_path) as f:
+        for line in f:
+            k, v = line.split()
+            idx_dict[k] = v
+    return idx_dict
+
+def parse_prot_dict(file_path):
+    prot_dict = dict()
+    with open(file_path) as f:
+        for line in f:
+            uniprot_id, cafa_id, index = line.split()
+            prot_dict[uniprot_id] = (cafa_id, index)
+    return prot_dict
