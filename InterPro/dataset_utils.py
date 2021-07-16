@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse import csc_matrix
+import os
 
 def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     """
@@ -472,6 +473,12 @@ def save_prot_dict(dict, output_path, file_name):
     with open(output_path + "/" + file_name + ".txt", "w") as f:
         for k, v in dict.items():
             f.write(k + '\t' + v[0] + '\t' + str(v[1]) + '\n')
+
+def save_prediction(cafa_id, go_scores, output_path):
+    with open (output_path + '/' +cafa_id + ".txt", 'w') as f:
+        for k, v in go_scores.items():
+            f.write(cafa_id + k + str(v) + '\n')
+
 
 
 

@@ -36,14 +36,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 y_train, y_test, go_dict = remove_unused_go_terms(y_train, y_test,  go_dict)
 save_dict(go_dict, output_path, "go_dict")
 save_prot_dict(prot_dict, output_path, "protein_dict")
+#save_dict(ip_dict, output_path, "ip_dict")
 #print("starting training")
-clf = BinaryRelevance(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=10)).fit(X_train, y_train)
+clf = BinaryRelevance(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100)).fit(X_train, y_train)
 #print("end training")
 
 dump(clf, output_path + '/InterPro_regression_model.joblib')
 
 y_pred = clf.predict(X_test)
-print("y_pred")
+#print("y_pred")
 #y_prob = clf.predict_proba(X_test[:20,:])
 #print("y_prob")
 

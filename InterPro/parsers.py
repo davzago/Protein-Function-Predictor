@@ -144,3 +144,12 @@ def parse_prot_dict(file_path):
             uniprot_id, cafa_id, index = line.split()
             prot_dict[uniprot_id] = (cafa_id, index)
     return prot_dict
+
+def parse_dict_to_array(file_path):
+    idx_arr = []
+    with open(file_path) as f:
+        for line in f:
+            k, v = line.split()
+            idx_arr.append(k)
+    idx_arr = np.array(idx_arr, dtype=object)
+    return idx_arr
