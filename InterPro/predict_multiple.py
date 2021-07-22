@@ -28,6 +28,7 @@ if not os.path.isdir(output_path):
     os.mkdir(output_path)
 
 clf = load(model)
+print(clf.n_jobs)
 ip_set = parse_interpro_set(interpro_set)
 #go_dict = parse_dict(terms_dict)
 #go_array = reverse_dict(go_dict)

@@ -165,7 +165,7 @@ def parse_goa(goa_file, rev_dict, ont_dict):
     Returns
     -------
     rev_dict : dict
-        same dictionary taken in input with the go terms added adn propagated in the set
+        same dictionary taken in input with the go terms added and propagated in the set
 
     """
     with open(goa_file) as f:
@@ -250,3 +250,22 @@ def propagate_terms(go_term_set, ont):
                 queue.append(p)
     return go_term_set
 
+def parse_gaf(gaf_file):
+    """
+    takes a goa file, parses it and saves a the parsed version in a text file 
+
+    Parameters
+    ----------
+    gaf_file : str
+        path to the goa unparsed file 
+    """
+    uniprot_dict = dict()
+    with open(gaf_file) as f:
+        for line in f:
+            if line.startswith('UniProtKB'):
+                l = line.split()
+                uniprot_dict = l[1]
+                go_id = l[4]
+                namespace = l[8]
+                taxon_id = l[-3].split(':')[1]
+                
