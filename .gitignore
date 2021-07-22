@@ -16,3 +16,7 @@ Blast/output2
 *.joblib
 
 *.pdf
+
+.vscode/
+
+InterPro_predictions/

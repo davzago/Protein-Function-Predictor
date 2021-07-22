@@ -1,0 +1,25 @@
+qsub -t 1-100 multiple_predictions.sh feature_matrix.txt Done
+qsub -t 101-200 multiple_predictions.sh feature_matrix.txt
+qsub -t 201-300 multiple_predictions.sh feature_matrix.txt
+qsub -t 301-400 multiple_predictions.sh feature_matrix.txt
+qsub -t 401-500 multiple_predictions.sh feature_matrix.txt
+qsub -t 501-600 multiple_predictions.sh feature_matrix.txt
+qsub -t 601-700 multiple_predictions.sh feature_matrix.txt
+qsub -t 701-800 multiple_predictions.sh feature_matrix.txt
+qsub -t 801-900 multiple_predictions.sh feature_matrix.txt
+qsub -t 901-1000 multiple_predictions.sh feature_matrix.txt
+qsub -t 1001-1100 multiple_predictions.sh feature_matrix.txt
+qsub -t 1101-1200 multiple_predictions.sh feature_matrix.txt
+qsub -t 01-1300 multiple_predictions.sh feature_matrix.txt
+qsub -t 1301-1400 multiple_predictions.sh feature_matrix.txt
+qsub -t 1401-1500 multiple_predictions.sh feature_matrix.txt
+qsub -t 1501-1600 multiple_predictions.sh feature_matrix.txt
+qsub -t 1601-1700 multiple_predictions.sh feature_matrix.txt
+qsub -t 1701-1800 multiple_predictions.sh feature_matrix.txt
+qsub -t 1801-1900 multiple_predictions.sh feature_matrix.txt
+qsub -t 1901-2000 multiple_predictions.sh feature_matrix.txt
+qsub -t 2001-2100 multiple_predictions.sh feature_matrix.txt
+qsub -t 2101-2200 multiple_predictions.sh feature_matrix.txt
+qsub -t 2101-$(cat lista.dat|wc -l)  multiple_predictions.sh feature_matrix.txt
+
+

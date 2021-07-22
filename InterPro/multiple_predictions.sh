@@ -10,6 +10,6 @@ line=$(sed "${SGE_TASK_ID}q;d" $1)
 
 module load python3
 
-rm -f predictions/*.txt
+rm -f multiple_predictions.sh.p*
 
-python3 InterPro/predict.py "InterPro/interpro_set.txt" "InterPro/go_dict.txt" "InterPro_output/model.joblib" $line -output_path "predictions"
+python3 InterPro/predict.py "interpro_set.txt" "InterPro_output/go_dict.txt" "InterPro/models/InterPro_regression_model.joblib" "$line" -output_path "InterPro_predictions"

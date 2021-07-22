@@ -4,6 +4,7 @@ import argparse
 import os
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score
 from skmultilearn.problem_transform import BinaryRelevance
 from skmultilearn.model_selection import iterative_train_test_split
@@ -34,11 +35,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 #X_train, X_test, y_train, y_test = iterative_train_test_split(X, y, test_size=0.33)
 
 y_train, y_test, go_dict = remove_unused_go_terms(y_train, y_test,  go_dict)
+print("Numero di predittori:", len(go_dict))
 save_dict(go_dict, output_path, "go_dict")
 save_prot_dict(prot_dict, output_path, "protein_dict")
-#save_dict(ip_dict, output_path, "ip_dict")
+save_dict(ip_dict, output_path, "ip_dict")
 #print("starting training")
-clf = BinaryRelevance(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100)).fit(X_train, y_train)
+clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100), n_jobs=8).fit(X_train, y_train.toarray())
 #print("end training")
 
 dump(clf, output_path + '/InterPro_regression_model.joblib')

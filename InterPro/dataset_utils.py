@@ -477,8 +477,124 @@ def save_prot_dict(dict, output_path, file_name):
 def save_prediction(cafa_id, go_scores, output_path):
     with open (output_path + '/' +cafa_id + ".txt", 'w') as f:
         for k, v in go_scores.items():
-            f.write(cafa_id + k + str(v) + '\n')
+            f.write(cafa_id + '\t' + k + '\t' + str(v) + '\n')
 
+def save_reference(x_train, prot_dict, ip_dict, output_path, ref_dict):
+    """
+    takes the feature set and saves it in a text file 
+
+    Parameters
+    ----------
+    x_train : csr_matrix
+        matrix with rows representing proteins and columns representing interpro ids
+
+    prot_dict : dict
+        {prot_id : index}
+
+    ip_dict : dict
+        {ip_id : index}
+
+    output_path : str
+        Path where to put the output file
+    """
+
+    rev_ip = reverse_dict(ip_dict)
+    rev_prot = reverse_dict(prot_dict)
+
+
+    n, m  = x_train.shape
+    f = open(output_path+"/feature_matrix.txt", "w")
+    for i in range(0,n):
+        f.write(rev_prot[i] + "\t" + ref_dict[rev_prot[i]][0] + "\t")
+        indexes = x_train[i,:].nonzero()
+        pos = -1 
+        for idx in indexes[1]:
+            pos += 1
+            ip_id = rev_ip[idx]
+            f.write(ip_id)
+            if pos != len(indexes[1]) - 1:
+                f.write('-')
+        f.write('\n')
+
+def prediction_to_dict(Y, prot_array, go_array):
+    """
+    Takes the output of a predictor and returns the corresponding dictionary
+
+    Parameters
+    ----------
+    Y : csr_matrix
+        matrix containing the predictions
+
+    prot_array : np array
+        array that maps the index of each protein to its cafa_id
+
+    go_array : np arrary
+        array that maps the index of each go term with its id
+
+    Returns
+    -------
+    pred_dict : dict
+        dictionary containing the resulting predictions {cafa_id : [[go_term, score]]}
+    """
+    pred_dict = dict()
+
+    for i, cafa_id in enumerate(prot_array):
+        pred_dict.setdefault(cafa_id, [])
+        for j, go_id in enumerate(go_array):
+            score = Y[i,j]
+            if score >= 0.01:
+                pred_dict[cafa_id].append([go_id, score])
+
+    return pred_dict
+
+def save_prediction(pred_dict, max_prot, output_path):
+    """
+    saves a prediction multiple text files
+
+    Parameters
+    ----------
+    pred_dict : dict
+        dictionary containing the resulting predictions {cafa_id : [[go_term, score]]}
+
+    max_prot : int
+        maximum number of proteins per file
+    """
+
+    i = 0
+    n = 1
+    for cafa_id, go_terms in pred_dict.items():
+        if i >= max_prot:
+            n += 1
+            i = 0
+        with open(output_path + '/' + "predictions" + str(n) + ".txt", "a") as f:
+            for go_id, score in go_terms:
+                f.write(cafa_id + '\t' + go_id + '\t' + str(score) + '\n')
+        i += 1
+        
+
+def reshape_prediction(pred):
+    """
+    takes the output of model.predict_proba() and reshapes the matrix into (prot_id,go_id)
+
+    Parameters
+    ----------
+    pred : list
+        output of model.predict_proba()
+    
+    Returns
+    -------
+    Y : np matrix
+        a matrix with shape (prot,go_id)
+
+    """
+    n_out = len(pred)
+    n_samples = len(pred[0])
+    Y = np.zeros((n_samples, n_out))
+    for j, l in enumerate(pred):
+        for i, scores in enumerate(l):
+            s = scores[1]
+            Y[i,j] = s
+    return Y
 
 
 
