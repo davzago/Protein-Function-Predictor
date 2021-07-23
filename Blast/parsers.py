@@ -1,4 +1,5 @@
 from blast_score import *
+import gzip
 
 # could include part_of of the parents
 def parse_ontology(obo_file_path):
@@ -250,7 +251,7 @@ def propagate_terms(go_term_set, ont):
                 queue.append(p)
     return go_term_set
 
-def parse_gaf(gaf_file):
+def parse_gaf(gaf_file, output_path):
     """
     takes a goa file, parses it and saves a the parsed version in a text file 
 
@@ -258,14 +259,51 @@ def parse_gaf(gaf_file):
     ----------
     gaf_file : str
         path to the goa unparsed file 
+
+    output_path : str
+        path where to put the parsed goa file
     """
     uniprot_dict = dict()
-    with open(gaf_file) as f:
-        for line in f:
+    with gzip.open(gaf_file, "rb") as f:
+        #unzipped_f = gzip.GzipFile(fileobj=f)
+        prev_prot = ''
+        for bline in f:
+            line = bline.decode('UTF-8')
             if line.startswith('UniProtKB'):
                 l = line.split()
-                uniprot_dict = l[1]
+                uniprot_id = l[1]
                 go_id = l[4]
                 namespace = l[8]
-                taxon_id = l[-3].split(':')[1]
+                if l[-3].startswith("taxon"):
+                    taxon_id = l[-3].split(':')[1]
+                elif l[-4].startswith("taxon"):
+                    taxon_id = l[-4].split(':')[1]
+                elif l[-5].startswith("taxon"):
+                    taxon_id = l[-5].split(':')[1]
+                uniprot_dict.setdefault(uniprot_id, [taxon_id, dict()])
+                uniprot_dict[uniprot_id][1].setdefault(namespace, [])
+                uniprot_dict[uniprot_id][1][namespace].append(go_id)
+                if prev_prot == '':
+                    prev_prot = uniprot_id
+            if prev_prot != '' and uniprot_id != prev_prot:
+                save_protein(uniprot_dict, output_path)
+                uniprot_dict.pop(prev_prot, None) 
+                prev_prot = uniprot_id
+
+def save_protein(uniprot_dict, output_path):
+    with open(output_path + "goa.txt", "a") as f:
+        for uniprot_id, v in uniprot_dict.items():
+            taxon_id = v[0]
+            go_dict = v[1]
+            f.write(uniprot_id + '\t' + taxon_id + '\t')
+            for ns, go_list in go_dict.items():
+                f.write(ns + ',')
+                for idx, go_id in enumerate(go_list):
+                    f.write(go_id)
+                    if idx == len(go_list)-1:
+                        f.write(';')
+                    else:
+                        f.write(',')
+            f.write('\n')
+    
                 
