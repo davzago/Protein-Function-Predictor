@@ -75,7 +75,7 @@ def parse_reference(reference_file):
         f.close()
 
 
-def parse_blast(blast_file, goa_file, ont_dict, output_path):
+def parse_blast(blast_file, goa_file, ont_dict, ref_set, output_path):
     """
     Parses the blast file in chunks and return and writes the prediction files using blast_score
 
@@ -101,7 +101,7 @@ def parse_blast(blast_file, goa_file, ont_dict, output_path):
         for line in f:
             cafa_id, uniprot_id, _, _, _, _, _, _, _, _, e_value, bit_score = line.split()
             ### When having memory problems uncomment ths code and run only this function (will write the prediction file)
-            if prev_cafa_id == '':
+            """if prev_cafa_id == '':
                 prev_cafa_id = cafa_id
             if prev_cafa_id != cafa_id:
                 count += 1
@@ -112,18 +112,19 @@ def parse_blast(blast_file, goa_file, ont_dict, output_path):
                     blast_score(query_dict, gt_dict, go_term_set, output_path, i)
                     i += 1
                     count = 0
-                prev_cafa_id = cafa_id
+                prev_cafa_id = cafa_id"""
             if float(e_value) < 0.001:
                 if cafa_id in blast_dict:
                     blast_dict[cafa_id].append([uniprot_id, float(e_value), float(bit_score)])
-                else:
+                elif cafa_id in ref_set:
                     blast_dict.setdefault(cafa_id, [[uniprot_id, float(e_value), float(bit_score)]])
         #This aswell
-        rev = reverse_dict(blast_dict)
+        """rev = reverse_dict(blast_dict)
         goa_dict = parse_goa(goa_file, rev, ont_dict)
         query_dict, gt_dict, go_term_set = return_to_query(goa_dict)
-        blast_score(query_dict, gt_dict, go_term_set, output_path, i)
+        blast_score(query_dict, gt_dict, go_term_set, output_path, i)"""
 
+    return blast_dict
 
 def reverse_dict(blast_dict):
     """
@@ -175,7 +176,7 @@ def parse_goa(goa_file, rev_dict, ont_dict):
             for go_list in terms.split(';'):
                 l = go_list.split(',')
                 for i in range(1,len(l)):
-                    if uniprot_id in rev_dict:
+                    if uniprot_id in rev_dict and l[i].startswith("GO"):
                         rev_dict[uniprot_id][0].add(l[i])
                         #print(uniprot_id)
                     #else:
@@ -305,5 +306,54 @@ def save_protein(uniprot_dict, output_path):
                     else:
                         f.write(',')
             f.write('\n')
+
+def get_reference_pids(ref_file):
+    """
+    parses the ref file and returns a list of protein ids
+
+    Parameters
+    ----------
+    ref_file: str 
+        path to the file containing the reference 
+
+    Returns
+    -------
+    uniprot : set
+        set containing protein ids
+
+    cafa : set
+        set containing protein ids
+    """
+    uniprot = set()
+    cafa = set()
+    with open(ref_file, "r") as f:
+        for line in f:
+            div = line.split()
+            uniprot.add(div[-1])
+            cafa.add(div[0])
+    return uniprot, cafa
+
+def get_query_ids(ref_file):
+    """
+    takes a reference file and returns a set containing all the cafa ids in it
+
+    Parameters
+    ----------
+    ref_file : str
+        path to the reference file 
+
+    Returns 
+    -------
+    cafa_id_set : set()
+        set containing cafa ids
+    """
+
+    cafa_id_set = set()
+    with open(ref_file, 'r') as f:
+        for line in f:
+            cafa_id = line.split()[0]
+            cafa_id_set.add(cafa_id)
+    return cafa_id_set
+            
     
                 

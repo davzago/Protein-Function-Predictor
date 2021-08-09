@@ -30,6 +30,7 @@ ref_dict = propagate_reference(ref_dict, ontology)
 
 x_train, y_train, ip_dict, go_dict, prot_dict = create_dataset(interpro_file, ref_dict, ontology, ip_set)
 
+# could just use pandas
 if gt == True:
     save_dataset(x_train, y_train, prot_dict, ip_dict, go_dict, output_path, ref_dict)
 else:

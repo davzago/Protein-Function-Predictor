@@ -20,3 +20,15 @@ Blast/output2
 .vscode/
 
 InterPro_predictions/
+
+Blast/blast_new_eval/
+
+Blast/blast_new_eval19/
+
+Blast/eval_gaf/
+
+Blast/predictions*
+
+CAFA3_targets/
+
+CAFA3_training_data/
