@@ -63,23 +63,25 @@ def get_blast_pids(blast_file):
     uniprot : set
         set containing protein ids
     """
-    uniprot = set()
+    cafa = set()
     with open(blast_file, "r") as f:
         for line in f:
             div = line.split()
-            uniprot.add(div[1])
-    return uniprot
+            cafa.add(div[0])
+    return cafa
 
 
-ref_uniprot, ref_cafa = get_reference_pids("training/reference_new.txt")
-goa_uniprot = get_goa_pids("Blast/goa.txt")
-blast_uniprot = get_blast_pids("training/blast_pred_new.txt")
+ref_uniprot, ref_cafa = get_reference_pids("/home/davide/Documenti/training/reference_30000.txt")
+goa_uniprot = get_goa_pids("/home/davide/Documenti/training/goa_db_2018_08_exp.dat")
+blast_cafa = get_blast_pids("/home/davide/Documenti/training/blast_pred_new.txt")
 
-common = ref_uniprot.intersection(goa_uniprot).intersection(blast_uniprot)
+#common = ref_uniprot.intersection(goa_uniprot).intersection(blast_uniprot)
 ref_goa_common = ref_uniprot.intersection(goa_uniprot)
-ref_blast_common = ref_uniprot.intersection(blast_uniprot)
+ref_blast_common = ref_cafa.intersection(blast_cafa)
+#ref_blast_common = ref_uniprot.intersection(blast_uniprot)
 print("# of proteins in the reference:", len(ref_uniprot))
 print("# of proteins in the goa file:", len(goa_uniprot))
-print("# of common ids between blast and ref:", len(ref_blast_common))
+#print("# of common ids between blast and ref:", len(ref_blast_common))
 print("# of common ids between goa and ref:", len(ref_goa_common))
-print("number of common protein:", len(common))
+print("# of common ids between Blast and ref:", len(ref_blast_common))
+#print("number of common protein:", len(common))
