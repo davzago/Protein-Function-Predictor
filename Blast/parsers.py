@@ -99,7 +99,7 @@ def parse_blast(blast_file, goa_file, ont_dict, ref_set, output_path):
         count = 0
         i = 1
         for line in f:
-            cafa_id, uniprot_id, _, _, _, _, _, _, _, _, e_value, bit_score = line.split()
+            cafa_id, uniprot_id, identity, _, _, _, _, _, _, _, e_value, bit_score = line.split()
             ### When having memory problems uncomment ths code and run only this function (will write the prediction file)
             """if prev_cafa_id == '':
                 prev_cafa_id = cafa_id
@@ -113,7 +113,7 @@ def parse_blast(blast_file, goa_file, ont_dict, ref_set, output_path):
                     i += 1
                     count = 0
                 prev_cafa_id = cafa_id"""
-            if float(e_value) < 0.001:
+            if float(e_value) < 0.001 and int(identity.split('.')[0]) < 100: # checking identity to not include the protein itself in the comparison
                 if cafa_id in blast_dict:
                     blast_dict[cafa_id].append([uniprot_id, float(e_value), float(bit_score)])
                 elif cafa_id in ref_set:
