@@ -1,6 +1,8 @@
 import os
+import numpy as np
+import pandas as pd
 
-def parse_prediction(prediction_file, prediction_dictionary):
+def parse_prediction(prediction_file, prediction_dictionary, n_component):
     """
     Takes a prediction file and returns a dictionary containing the prot id as key and a dict of scores for each go term as value
 
@@ -11,6 +13,9 @@ def parse_prediction(prediction_file, prediction_dictionary):
 
     prediction_dictionary : dict
         build in progress dictionary that will contain all the predictions: {cafa_id: {go_term: [scores]}}
+
+    n_component : int
+        the index where the score of the component should be placed
     
     Returns
     -------
@@ -22,8 +27,8 @@ def parse_prediction(prediction_file, prediction_dictionary):
         for line in f:
             cafa_id, go_term, score = line.split()
             prediction_dictionary.setdefault(cafa_id, dict())
-            prediction_dictionary[cafa_id].setdefault(go_term, [[],-1])
-            prediction_dictionary[cafa_id][go_term].append(float(score))
+            prediction_dictionary[cafa_id].setdefault(go_term, [[0,0,0],0])
+            prediction_dictionary[cafa_id][go_term][0][n_component] = score
     return prediction_dictionary
 
 
@@ -42,9 +47,9 @@ def build_prediction_dict(prediction_folder_list):
         dictionary containing all the predictions
     """
     pred_dict = dict()
-    for folder in prediction_folder_list:
+    for i, folder in enumerate(prediction_folder_list):
         for pred_file in os.listdir(folder):
-             pred_dict = parse_prediction(pred_file, pred_dict)
+             pred_dict = parse_prediction(folder +'/'+ pred_file, pred_dict, i)
     return pred_dict
 
 def build_dataset(pred_dict):
@@ -59,26 +64,30 @@ def build_dataset(pred_dict):
 
     Returns
     -------
-    feature_matrix : np_array
-        matrix containing the scores for each go term
-
-    labels : np_array
-        array containing the ground truth
-
-    group : np_array 
-        array containing the group id for each line in the feature matrix
+    df : pandas DataFrame
+        Dataframe containing dataset and labels columns=['Protein id', 'group id', 'Go term id', 'Naive', 'Blast', 'InterPro', 'Label']
 
     assoc : dict
         dictionary that stores the which group corresponds to each protein
     """
     assoc = dict()
     next_free = 0
+    data = []
+    
 
-    for prot, scores in pred_dict.items():
+    for prot, go_dict in pred_dict.items():
+        #fill the association list
         if prot not in assoc:
             assoc[prot] = next_free
             next_free += 1
-        
+        #group_size = 0
+        for go_term, [[score1, score2, score3], label] in go_dict.items():
+            data.append([prot, assoc[prot], go_term, score1, score2, score3, label])
+            #group_size += 1
+    df = pd.DataFrame(data, columns=['Protein id', 'Group', 'Go term id', 'Naive', 'Blast', 'InterPro', 'Label'])
+    return df, assoc
+
+
 #def add_ground_truth(goa, pred_dict):
     """
     takes a prediction dict and adds the ground truth contained in the goa file
@@ -92,7 +101,8 @@ def build_dataset(pred_dict):
         the dictionary containing the predictions {prot_id: {go_id: [[score1,score2,score3],gt]}}
     """
 
-def add_ground_truth(ref, pred_dict):
+def add_ground_truth(ref, pred_dict): # I'm using the reference instead of the goa just because the goa has only uniprot_id
+    # this should be changend for the final version
     """
     takes a prediction dict and adds the ground truth contained in the ref file
 
@@ -113,7 +123,9 @@ def add_ground_truth(ref, pred_dict):
     with open(ref, 'r') as f:
         for line in f:
             cafa_id, go_term, namespace, uniprot_id = line.split('\t')
-            if cafa_id in pred_dict:
-                pred_dict[]
+            if cafa_id in pred_dict and go_term in pred_dict[cafa_id]:
+                pred_dict[cafa_id][go_term][1] = 1
+    return pred_dict
+    
 
         
