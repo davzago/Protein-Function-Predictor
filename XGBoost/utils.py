@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-def parse_prediction(prediction_file, prediction_dictionary, n_component):
+def parse_prediction(prediction_file, prediction_dictionary, n_component, k):
     """
     Takes a prediction file and returns a dictionary containing the prot id as key and a dict of scores for each go term as value
 
@@ -17,22 +17,31 @@ def parse_prediction(prediction_file, prediction_dictionary, n_component):
     n_component : int
         the index where the score of the component should be placed
     
+    k : int
+        maximum number of go terms per protein
     Returns
     -------
     prediction_dictionary : dict
         same dict taken as input augmented with the predictions found in the prediction file 
     """
-    
+    component_dict = dict()
     with open(prediction_file, 'r') as f:
         for line in f:
             cafa_id, go_term, score = line.split()
+            component_dict.setdefault(cafa_id, [])
+            component_dict[cafa_id].append([go_term, score])
+
+    for cafa_id, go_list in component_dict.items():
+        go_list.sort(key=lambda x: float(x[1]))
+        for go_term, score in go_list[::-1][:k]:
             prediction_dictionary.setdefault(cafa_id, dict())
             prediction_dictionary[cafa_id].setdefault(go_term, [[0,0,0],0])
             prediction_dictionary[cafa_id][go_term][0][n_component] = score
+
     return prediction_dictionary
 
 
-def build_prediction_dict(prediction_folder_list):
+def build_prediction_dict(prediction_folder_list, k):
     """
     Takes the folders containing the predictions and outputs a dictionary that groups all the predictions
 
@@ -49,7 +58,7 @@ def build_prediction_dict(prediction_folder_list):
     pred_dict = dict()
     for i, folder in enumerate(prediction_folder_list):
         for pred_file in os.listdir(folder):
-             pred_dict = parse_prediction(folder +'/'+ pred_file, pred_dict, i)
+             pred_dict = parse_prediction(folder +'/'+ pred_file, pred_dict, i, k)
     return pred_dict
 
 def build_dataset(pred_dict):
@@ -126,6 +135,22 @@ def add_ground_truth(ref, pred_dict): # I'm using the reference instead of the g
             if cafa_id in pred_dict and go_term in pred_dict[cafa_id]:
                 pred_dict[cafa_id][go_term][1] = 1
     return pred_dict
+    
+def predict(model, df):
+        return model.predict(df.iloc[:, ~df.columns.isin(['Group'])])
+
+def predict2(model, data, groups):
+    pred = []
+    index = 0
+    for g in groups:
+        prediction = model.predict(data[index:index+g,:])
+        #prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
+        #print(prediction)
+        pred = [*pred, *prediction]
+        index += g
+    return np.array(pred)
+
+#def F1(y_true, y_proba):   
     
 
         
