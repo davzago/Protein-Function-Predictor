@@ -40,6 +40,13 @@ gs_params = {'objective': ['rank:pairwise'], 'gamma': [1.0, 10.0, 0.1, 0.01],
                 'max_depth': [6,4,10], 'min_child_weight': [0.1],
                 'n_estimators': [10, 100, 1000]}
 
+objective, gamma, max_depth, min_child_weight, n_estimators = list(gs_params.values())
+params = [[obj, g, depth, weight, estim] for obj in objective for g in gamma for depth in max_depth for weight in min_child_weight for estim in n_estimators]
+
+print(params)
+        
+
+
 kFold = GroupKFold(n_splits=5)
 
 f1_scores = []
