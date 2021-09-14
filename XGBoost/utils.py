@@ -144,12 +144,14 @@ def predict2(model, data, groups):
     index = 0
     for g in groups:
         prediction = model.predict(data[index:index+g,:])
-        #prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
-        #print(prediction)
+        prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
         pred = [*pred, *prediction]
         index += g
     return np.array(pred)
 
+def scores_mean(list_of_scores):
+    mean = sum(list_of_scores)/len(list_of_scores)
+    return mean
 #def F1(y_true, y_proba):   
     
 
