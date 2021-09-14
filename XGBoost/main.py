@@ -23,7 +23,7 @@ interpro_folder = args.InterPro_predictions
 ref = args.ref_file
 
 # building the  
-pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 30)
+pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 10)
 key = random.choice(list(pred_dict))
 pred_dict = add_ground_truth(ref, pred_dict)
 
@@ -117,8 +117,16 @@ print("with mean:", max_val)
 # with mean: 0.5001041800573793
 
 # tau = 0.5 ; k = 30 ; non normalized scores
+# the best parameters based on F score are:
+# {'objective': 'rank:pairwise', 'gamma': 0.1, 'max_depth': 10, 'min_child_weight': 0.1, 'n_estimators': 100}
+# with mean: 0.38482721885209653
 
 # tau = 0.7 ; k = 30 ; normalized scores
+# the best parameters based on F score are:
+# {'objective': 'rank:pairwise', 'gamma': 10.0, 'max_depth': 4, 'min_child_weight': 0.1, 'n_estimators': 100}
+# with mean: 0.38793471738974544
+
+## tau = 0.7 ; k = 10 ; normalized scores
 
 
 

@@ -16,12 +16,14 @@ parser.add_argument('interpro_set', help='File containing set of possible interp
 parser.add_argument('ontology_file', help='File containing the ontology')
 parser.add_argument('dataset_file', help='File containing the dataset for the training of the logistic regression model')
 parser.add_argument('-output_path', help='Path to the folder where the predction file will be put', default="InterPro")
+parser.add_argument('-model_name', help='name of the output model', default='InterPro_regression_model')
 args = parser.parse_args()
 
 interpro_set = args.interpro_set
 ontology_file = args.ontology_file
 dataset_file = args.dataset_file
 output_path = args.output_path
+model_name = args.model_name
 
 if not os.path.isdir(output_path):
     os.mkdir(output_path)
@@ -43,7 +45,7 @@ save_dict(ip_dict, output_path, "ip_dict")
 clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100), n_jobs=8).fit(X_train, y_train.toarray())
 #print("end training")
 
-dump(clf, output_path + '/InterPro_regression_model.joblib')
+dump(clf, output_path + '/' + model_name + '.joblib')
 
 y_pred = clf.predict(X_test)
 #print("y_pred")

@@ -87,7 +87,32 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
 
     return x_train, y_train, ip_dict, go_dict, prot_indexes
 
-    
+def parse_goa(goa_file): # this parses a goa already parsed
+    """
+    Takes a reference file, parses it and returns the corresponding dictionary
+
+    Parameter
+    ---------
+    goa_file : str
+        Path to the goa file 
+
+    Returns
+    -------
+    ref_dict : dict
+        {uniprot_id: ['T', set(go'_terms)]} where 'T' should be cafa id and is kept to keep create_dataset compatible
+    """
+    goa_dict = dict()
+    with open(goa_file, 'r') as f:
+        for line in f:
+            uniprot_id, _, terms = line.split()
+            goa_dict.setdefault(uniprot_id, ['T', set()])
+            for go_list in terms.split(';'):
+                l = go_list.split(',')
+                for i in range(1,len(l)):
+                    if uniprot_id in goa_dict and l[i].startswith("GO"):
+                        goa_dict[uniprot_id][1].add(l[i])
+
+    return goa_dict
     
 def parse_reference(ref_file):
     """
@@ -227,7 +252,7 @@ def save_dataset(x_train, y_train, prot_dict, ip_dict, go_dict, output_path, ref
 
     n, m  = x_train.shape
     p = y_train.shape[1]
-    f = open(output_path+"/dataset.txt", "w")
+    f = open(output_path+"/goa_dataset.txt", "w")
     for i in range(0,n):
         f.write(rev_prot[i] + "\t" + ref_dict[rev_prot[i]][0] + "\t")
         indexes = x_train[i,:].nonzero()
