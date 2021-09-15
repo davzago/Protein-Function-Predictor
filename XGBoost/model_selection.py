@@ -23,8 +23,8 @@ interpro_folder = args.InterPro_predictions
 ref = args.ref_file
 
 # building the  
-pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 10)
-key = random.choice(list(pred_dict))
+pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 50)
+#key = random.choice(list(pred_dict))
 pred_dict = add_ground_truth(ref, pred_dict)
 
 df, assoc = build_dataset(pred_dict)
@@ -79,7 +79,7 @@ for obj, g, d, w, e  in params:
         #print(y_train)
         pred = predict2(rank_model, X_test, test_groups)
 
-        tau = 0.7
+        tau = 0.8
 
         f1_score = sk.metrics.f1_score(y_test, (pred > tau))
         precision_score = sk.metrics.precision_score(y_test, (pred > tau))
@@ -126,7 +126,19 @@ print("with mean:", max_val)
 # {'objective': 'rank:pairwise', 'gamma': 10.0, 'max_depth': 4, 'min_child_weight': 0.1, 'n_estimators': 100}
 # with mean: 0.38793471738974544
 
-## tau = 0.7 ; k = 10 ; normalized scores
+# tau = 0.7 ; k = 10 ; normalized scores
+# the best parameters based on F score are:
+# {'objective': 'rank:pairwise', 'gamma': 10.0, 'max_depth': 4, 'min_child_weight': 0.1, 'n_estimators': 10}
+# with mean: 0.4994602001762584
 
+# tau = 0.5 ; k = 50 ; normalized scores
+# the best parameters based on F score are:
+# {'objective': 'rank:pairwise', 'gamma': 1.0, 'max_depth': 4, 'min_child_weight': 0.1, 'n_estimators': 10}
+# with mean: 0.3070115179051105
+
+# tau = 0.8 ; k = 50 ; normalized scores
+# the best parameters based on F score are:
+# {'objective': 'rank:pairwise', 'gamma': 10.0, 'max_depth': 4, 'min_child_weight': 0.1, 'n_estimators': 10}
+# with mean: 0.3448914151305004
 
 
