@@ -76,7 +76,7 @@ def parse_component_prediction(prediction_folder):
     """
     pred_dict = dict()
     for pred_file in os.listdir(prediction_folder):
-        with open(pred_file, 'r') as f:
+        with open(prediction_folder + '/' + pred_file, 'r') as f:
             for line in f:
                 cafa_id, go_term, score = line.split()
                 pred_dict.setdefault(cafa_id, dict())
@@ -109,19 +109,42 @@ def combine_dictionaries(pred1, pred2, pred3, k):
     final_dict = dict()
     for prot_id , go_dict in pred1.items():
         go_list = []
-        for go_id, score in go_dict.items:
+        for go_id, score in go_dict.items():
             go_list.append([go_id, score])
         go_list.sort(key=lambda x: float(x[1]))
         go_list = go_list[::-1][:k]
         final_dict.setdefault(prot_id, dict())
         for go, s in go_list:
-            final_dict[prot_id][go] = [[s, 0, 0], 0]
+            final_dict[prot_id][go] = [[float(s), 0, 0], 0]
+
     for prot_id, go_dict in pred2.items():
-        
+        go_list = []
+        for go_id, score in go_dict.items():
+            go_list.append([go_id, score])
+            if prot_id in final_dict and go_id in final_dict[prot_id]:
+                final_dict[prot_id][go_id][0][1] = score
+        go_list.sort(key=lambda x: float(x[1]))
+        go_list = go_list[::-1][:k]
+        final_dict.setdefault(prot_id, dict())
+        for go, s in go_list:
+            if go not in final_dict[prot_id]:
+                final_dict[prot_id][go] = [[0, float(s), 0], 0]
 
-            #for go, s in pred2[prot_id].items():
+    for prot_id, go_dict in pred3.items():
+        go_list = []
+        for go_id, score in go_dict.items():
+            go_list.append([go_id, score])
+            if prot_id in final_dict and go_id in final_dict[prot_id]:
+                final_dict[prot_id][go_id][0][2] = score
+        go_list.sort(key=lambda x: float(x[1]))
+        go_list = go_list[::-1][:k]
+        final_dict.setdefault(prot_id, dict())
+        for go, s in go_list:
+            if go not in final_dict[prot_id]:
+                final_dict[prot_id][go] = [[0, 0, float(s)], 0]
+
+    return final_dict
                 
-
 def build_dataset(pred_dict):
     """
     takes the predictions of the feature extraction components of the predictor as a dictionary and returns them
@@ -157,7 +180,7 @@ def build_dataset(pred_dict):
     df = pd.DataFrame(data, columns=['Protein id', 'Group', 'Go term id', 'Naive', 'Blast', 'InterPro', 'Label'])
     return df, assoc
 
-#def add_ground_truth(goa, pred_dict):
+#def add_ground_truth(goa, pred_dict): # will implement this when using the goa instead of the reference
     """
     takes a prediction dict and adds the ground truth contained in the goa file
 

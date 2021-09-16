@@ -22,9 +22,17 @@ blast_folder = args.Blast_predictions
 interpro_folder = args.InterPro_predictions
 ref = args.ref_file
 
-# building the  
-pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 50)
-#key = random.choice(list(pred_dict))
+naive_pred = parse_component_prediction(naive_folder)
+blast_pred = parse_component_prediction(blast_folder)
+interpro_pred = parse_component_prediction(interpro_folder)
+
+pred_dict = combine_dictionaries(naive_pred, blast_pred, interpro_pred, 10)
+
+#pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 50)
+key = random.choice(list(pred_dict))
+print(key)
+print(pred_dict[key])
+
 pred_dict = add_ground_truth(ref, pred_dict)
 
 df, assoc = build_dataset(pred_dict)
