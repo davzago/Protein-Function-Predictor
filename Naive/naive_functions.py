@@ -184,6 +184,26 @@ def cafaid_form_ref(file):
             cafa_ids.add(cafa_id)
     return cafa_ids
 
+def get_protein_set(protein_file):
+    """
+    takes a file containing a protein id for each file and returns a set containing all of them
+
+    Parameters
+    ----------
+    protein_file : str
+        path to the protein file
+
+    Returns
+    -------
+    protein_set : set()
+        set containing all the proteins in the protein file 
+    """
+    protein_set = set()
+    with open(protein_file, 'r') as f:
+        for line in f:
+            prot_id = line.strip()
+            protein_set.add(prot_id)
+
 """def benchmark_from_ref(file, gt_file):
     cafa_ids = set()
     gt_ids = set()

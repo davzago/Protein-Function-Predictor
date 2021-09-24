@@ -37,6 +37,7 @@ X, y, ip_dict, go_dict, prot_dict = parse_dataset(dataset_file, ip_set, ontology
 #X_train, X_test, y_train, y_test = iterative_train_test_split(X, y, test_size=0.33)
 
 y, y_test, go_dict = remove_unused_go_terms(y, y[1,:],  go_dict) # y[1,:] is just to put an argument there, the corresponding return will not be used
+#y_train , y_test, go_dict = remove_unused_go_terms(y_train, y_test,  go_dict)
 print("Numero di predittori:", len(go_dict))
 save_dict(go_dict, output_path, "go_dict")
 save_prot_dict(prot_dict, output_path, "protein_dict")

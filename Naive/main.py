@@ -23,8 +23,9 @@ if not os.path.isdir(output_path):
 ontology = parse_ontology(obo_file)
 goa_dict = parse_goa(goa_file)
 freq_dict = naive_calculator(goa_dict, ontology)
-prot_list = cafaid_form_ref(protein_file)
-naive_to_prediction(freq_dict, prot_list, output_path)
+#prot_set = cafaid_form_ref(protein_file)
+prot_set = get_protein_set(protein_file)
+naive_to_prediction(freq_dict, prot_set, output_path)
 
 
 
