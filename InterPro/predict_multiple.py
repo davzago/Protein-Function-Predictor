@@ -1,9 +1,6 @@
-from numpy.core.records import array
 from parsers import parse_dict, parse_dict_to_array, parse_features
 from dataset_utils import *
 from dataset_utils import parse_interpro_set, reverse_dict, save_prediction, set_ip_indices
-from sklearn.multioutput import MultiOutputClassifier
-from sklearn.linear_model import LogisticRegression
 import argparse
 import numpy as np
 import os

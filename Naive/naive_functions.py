@@ -203,6 +203,7 @@ def get_protein_set(protein_file):
         for line in f:
             prot_id = line.strip()
             protein_set.add(prot_id)
+    return protein_set
 
 """def benchmark_from_ref(file, gt_file):
     cafa_ids = set()
