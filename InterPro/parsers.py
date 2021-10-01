@@ -110,7 +110,7 @@ def parse_features(dataset_file, interpro_set):
         for line in f:
             #rowx = np.zeros(shape)
             uniprot_id, cafa_id, interpro_list = line.split()
-            prot_indexes.setdefault(cafa_id, idx)
+            prot_indexes.setdefault(uniprot_id, idx)
             # fill the training set matrix
             for ip_id in interpro_list.split('-'):
                 x_row.append(idx)

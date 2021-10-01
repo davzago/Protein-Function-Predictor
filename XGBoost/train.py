@@ -13,21 +13,43 @@ parser = argparse.ArgumentParser(description='XGBoost predictor')
 parser.add_argument('Naive_predictions', help='Path to the folder containing the predictions from the Naive component')
 parser.add_argument('Blast_predictions', help='Path to the folder containing the predictions from the Blast component')
 parser.add_argument('InterPro_predictions', help="Path to the folder containing the predictions from the Interpro component")
-parser.add_argument('ref_file', help="path to the reference file")# will be substituted with the goa file
+parser.add_argument('goa_file', help="File containing the goa database")
+parser.add_argument('k', help="maximum number of proposed go term from each component")
+parser.add_argument('-ref_file', help="path to the reference file, if this parameter is set the goa will not be used")# will be substituted with the goa file
+parser.add_argument('-model_name', help='Path to the folder where the predction file will be put', default="xgb")
 parser.add_argument('-output_path', help='Path to the folder where the predction file will be put', default="output")
 args = parser.parse_args()
 
 naive_folder = args.Naive_predictions
 blast_folder = args.Blast_predictions
 interpro_folder = args.InterPro_predictions
+goa_file = args.goa_file
 ref = args.ref_file
+output_path = args.output_path
+k = args.k
+model_name = args.model_name
 
 # building the  
-pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 30)
+pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], k)
 #key = random.choice(list(pred_dict))
-pred_dict = add_ground_truth(ref, pred_dict)
+if ref is not None:
+    pred_dict = add_ground_truth(ref, pred_dict)
+else:
+    pred_dict = add_ground_truth_from_goa(goa_file, pred_dict)
 
 df, assoc = build_dataset(pred_dict)
 
 
-params = {'objective': 'rank:pairwise', 'learning_rate': 0.01, 'max_depth': 4, 'gamma': 1.0, 'min_child_weight': 0.1, 'n_estimators': 1000}
+params = {'objective': 'rank:pairwise', 'learning_rate': 0.01, 'max_depth': 4,
+             'gamma': 1.0, 'min_child_weight': 0.1, 'n_estimators': 1000}
+
+X_train = df[['Naive', 'Blast', 'InterPro']].to_numpy().astype('float')
+y_train = df['Label'].to_numpy().astype('int')
+
+groups = df.groupby('Protein id').size().to_frame('size')['size'].to_numpy()
+
+rank_model = xgb.sklearn.XGBRanker(**params)    
+
+rank_model.fit(X_train, y_train, group=groups, verbose=True)
+
+rank_model.save_model(output_path + '/' + model_name + ".model")

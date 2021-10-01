@@ -180,27 +180,37 @@ def build_dataset(pred_dict):
     df = pd.DataFrame(data, columns=['Protein id', 'Group', 'Go term id', 'Naive', 'Blast', 'InterPro', 'Label'])
     return df, assoc
 
-#def add_ground_truth(goa, pred_dict): # will implement this when using the goa instead of the reference
+def add_ground_truth_from_goa(goa, pred_dict): 
     """
     takes a prediction dict and adds the ground truth contained in the goa file
 
     Parameters
     ----------
     goa : str
-        file containing the ground truth
+        goa file containing the ground truth
 
     pred_dict : dict
         the dictionary containing the predictions {prot_id: {go_id: [[score1,score2,score3],gt]}}
     """
 
-def add_ground_truth(ref, pred_dict): # I'm using the reference instead of the goa just because the goa has only uniprot_id
+    with open(goa) as f:
+        for line in f:
+            uniprot_id, _, terms = line.split()
+            for go_list in terms.split(';'):
+                l = go_list.split(',')
+                for go_term in l:
+                    if uniprot_id in pred_dict and go_term in pred_dict[uniprot_id]:
+                        pred_dict[uniprot_id][go_term][1] = 1
+    return pred_dict
+
+def add_ground_truth(ref, pred_dict): 
     # this should be changend for the final version
     """
     takes a prediction dict and adds the ground truth contained in the ref file
 
     Parameters
     ----------
-    goa : str
+    ref : str
         file containing the ground truth
 
     pred_dict : dict
@@ -222,7 +232,26 @@ def add_ground_truth(ref, pred_dict): # I'm using the reference instead of the g
 def predict(model, df):
         return model.predict(df.iloc[:, ~df.columns.isin(['Group'])])
 
-def predict2(model, data, groups):
+def predict_groups(model, data, groups):
+    """
+    takes a model, the features and the groups information and computes the prediction and normalizes them in the [0,1] interval
+
+    Parameters
+    ----------
+    model : trained model
+        the ranking model that will be use to make predictions
+
+    data : numpy matrix
+        matrix that has proteins as rows and components score as columns
+
+    groups : numpy array
+        list of integers representing the size of subsequent group of feature (there is 1 group for each protein)
+
+    Returns
+    -------
+    pred : numpy array
+        list of prediction scores computed using the model
+    """
     pred = []
     index = 0
     for g in groups:
@@ -235,7 +264,13 @@ def predict2(model, data, groups):
 def scores_mean(list_of_scores):
     mean = sum(list_of_scores)/len(list_of_scores)
     return mean
-#def F1(y_true, y_proba):   
-    
+
+def save_predictions(preds, prot_ids, go_terms, output_path):
+    go_len = len(go_terms)
+    prot_len = len(prot_ids)
+    preds_len = len(preds)
+    if prot_len == preds_len and go_len == prot_len:
+        m = np.array([prot_ids, go_terms, preds])
+        np.savetxt(output_path + '/' + "predictions.txt", m, delimiter='\t')
 
         

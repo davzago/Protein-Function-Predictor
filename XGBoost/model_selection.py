@@ -29,9 +29,9 @@ interpro_pred = parse_component_prediction(interpro_folder)
 pred_dict = combine_dictionaries(naive_pred, blast_pred, interpro_pred, 10)
 
 #pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], 50)
-key = random.choice(list(pred_dict))
-print(key)
-print(pred_dict[key])
+#key = random.choice(list(pred_dict))
+#print(key)
+#print(pred_dict[key])
 
 pred_dict = add_ground_truth(ref, pred_dict)
 
@@ -85,7 +85,7 @@ for obj, g, d, w, e  in params:
         """pred = rank_model.predict(X_test)
         print((pred > 1).any())"""
         #print(y_train)
-        pred = predict2(rank_model, X_test, test_groups)
+        pred = predict_groups(rank_model, X_test, test_groups)
 
         tau = 0.8
 
