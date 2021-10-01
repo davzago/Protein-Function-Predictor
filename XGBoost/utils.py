@@ -266,11 +266,30 @@ def scores_mean(list_of_scores):
     return mean
 
 def save_predictions(preds, prot_ids, go_terms, output_path):
+    """
+    saves the predictions made by the xgboost component in a tsv file 
+
+    Parameters
+    ----------
+    preds : numpy array
+        array containing the predictions scores
+
+    prot_ids : numpy array 
+        array containing the protein's id to match each score in preds
+
+    go_terms : numpy array
+        array containing the go terms to match each score in preds 
+
+    output_path : str
+        path where the prediction file will be put
+    """
     go_len = len(go_terms)
     prot_len = len(prot_ids)
     preds_len = len(preds)
     if prot_len == preds_len and go_len == prot_len:
-        m = np.array([prot_ids, go_terms, preds])
+        m = np.array([prot_ids, go_terms, preds]).T
         np.savetxt(output_path + '/' + "predictions.txt", m, delimiter='\t')
+    else:
+        raise Exception("the provided arrays do not have the same length")
 
         
