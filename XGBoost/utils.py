@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
+import xgboost as xgb
+import math
 
 def parse_prediction(prediction_file, prediction_dictionary, n_component, k):
     """
@@ -76,11 +78,12 @@ def parse_component_prediction(prediction_folder):
     """
     pred_dict = dict()
     for pred_file in os.listdir(prediction_folder):
-        with open(prediction_folder + '/' + pred_file, 'r') as f:
-            for line in f:
-                cafa_id, go_term, score = line.split()
-                pred_dict.setdefault(cafa_id, dict())
-                pred_dict[cafa_id][go_term] = score
+        if pred_file.startswith("pred"):
+            with open(prediction_folder + '/' + pred_file, 'r') as f:
+                for line in f:
+                    cafa_id, go_term, score = line.split()
+                    pred_dict.setdefault(cafa_id, dict())
+                    pred_dict[cafa_id][go_term] = score
     return pred_dict
 
 def combine_dictionaries(pred1, pred2, pred3, k):
@@ -255,7 +258,8 @@ def predict_groups(model, data, groups):
     pred = []
     index = 0
     for g in groups:
-        prediction = model.predict(data[index:index+g,:])
+        dX = xgb.DMatrix(data[index:index+g,:])
+        prediction = model.predict(dX)
         prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
         pred = [*pred, *prediction]
         index += g
@@ -265,7 +269,7 @@ def scores_mean(list_of_scores):
     mean = sum(list_of_scores)/len(list_of_scores)
     return mean
 
-def save_predictions(preds, prot_ids, go_terms, output_path):
+def save_predictions(preds, prot_ids, go_terms, groups, n_prot, output_path):
     """
     saves the predictions made by the xgboost component in a tsv file 
 
@@ -280,16 +284,61 @@ def save_predictions(preds, prot_ids, go_terms, output_path):
     go_terms : numpy array
         array containing the go terms to match each score in preds 
 
+    groups . numpy array
+        array containing how many elements are in each group (same protein id)
+
+    n_prot : int
+        maxium number of proteins per prediction file
+
     output_path : str
         path where the prediction file will be put
     """
     go_len = len(go_terms)
     prot_len = len(prot_ids)
     preds_len = len(preds)
+    n = 1
+    g = int(math.ceil(len(groups) / n_prot))
+    e = 0
     if prot_len == preds_len and go_len == prot_len:
-        m = np.array([prot_ids, go_terms, preds]).T
-        np.savetxt(output_path + '/' + "predictions.txt", m, delimiter='\t')
+        for i in range (0,g):
+            start = i * n_prot
+            end = start + n_prot - 1 
+            s = e
+            e = sum(groups[start:end])
+            if end > go_len:
+                end = go_len - 1
+            m = np.array([prot_ids[s:e], go_terms[s:e], preds[s:e]]).T
+            np.savetxt(output_path + '/' + "predictions" + str(n) + ".txt", m, delimiter='\t', fmt='%s')
+            n += 1
     else:
         raise Exception("the provided arrays do not have the same length")
 
-        
+def switch_prot_ids(mapping_file, prot_ids):
+    """
+    takes a list of uniprot ids and converts them into a list of cafa ids
+
+    Parameters
+    ----------
+    mapping_file: str
+        path to the file that contains the mapping between uniprot ids and cafa ids
+
+    prot_ids: numpy array
+        list of uniprot ids
+
+    Returns
+    -------
+    prot_list: numpy array
+        list of cafa ids (will be used to save the predictions)
+    """       
+    id_map = dict()
+    prot_list = []
+    with open(mapping_file, 'r')as f:
+        for line in f:
+            cafa_id, uniprot_id , _ = line.split()
+            id_map.setdefault(uniprot_id, cafa_id)
+    
+    for i in range(0,len(prot_ids)):
+        if prot_ids[i] in id_map:
+            prot_list.append(id_map[prot_ids[i]])
+    
+    return np.array(prot_list)

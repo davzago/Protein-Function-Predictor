@@ -26,11 +26,15 @@ interpro_folder = args.InterPro_predictions
 goa_file = args.goa_file
 ref = args.ref_file
 output_path = args.output_path
-k = args.k
+k = int(args.k)
 model_name = args.model_name
 
 # building the  
-pred_dict = build_prediction_dict([naive_folder,blast_folder,interpro_folder], k)
+naive_pred = parse_component_prediction(naive_folder)
+blast_pred = parse_component_prediction(blast_folder)
+interpro_pred = parse_component_prediction(interpro_folder)
+
+pred_dict = combine_dictionaries(naive_pred, blast_pred, interpro_pred, k)
 #key = random.choice(list(pred_dict))
 if ref is not None:
     pred_dict = add_ground_truth(ref, pred_dict)
