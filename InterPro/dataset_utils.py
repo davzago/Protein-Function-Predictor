@@ -276,7 +276,6 @@ def save_dataset(x_train, y_train, prot_dict, ip_dict, go_dict, output_path, ref
             f.write("\n")
     f.close()
     
-
 def parse_dataset(dataset_file, interpro_set, ontology):
     """
     Parses a dataset file created with the function save_dataset() and returns the same structures as create_dataset()
@@ -355,7 +354,6 @@ def parse_dataset(dataset_file, interpro_set, ontology):
     y_train = csc_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
 
     return x_train, y_train, ip_dict, go_dict, prot_indexes
-
 
 def save_interpro_set(interpro_set, output_path):
     """
@@ -457,7 +455,6 @@ def remove_unused_go_terms(y_train, y_test, go_dict):
 
     return y_new, test, go_dict_new
 
-
 def save_dict(dict, output_path, file_name):
     """
     Takes a dictionary and saves it on a text file 
@@ -478,7 +475,6 @@ def save_dict(dict, output_path, file_name):
         for k, v in dict.items():
             f.write(k + '\t' + str(v) + '\n')
             
-
 def save_prot_dict(dict, output_path, file_name):
     """
     Takes a dictionary of proteins and saves it on a text file 
@@ -594,8 +590,7 @@ def save_prediction(pred_dict, max_prot, output_path):
         with open(output_path + '/' + "predictions" + str(n) + ".txt", "a") as f:
             for go_id, score in go_terms:
                 f.write(cafa_id + '\t' + go_id + '\t' + str(score) + '\n')
-        i += 1
-        
+        i += 1   
 
 def reshape_prediction(pred):
     """

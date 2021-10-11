@@ -43,7 +43,7 @@ save_dict(go_dict, output_path, "go_dict")
 save_prot_dict(prot_dict, output_path, "protein_dict")
 save_dict(ip_dict, output_path, "ip_dict")
 #print("starting training")
-clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100), n_jobs=8).fit(X, y.toarray())
+clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=1000), n_jobs=8).fit(X, y.toarray())
 #print("end training")
 
 dump(clf, output_path + '/' + model_name + '.joblib')

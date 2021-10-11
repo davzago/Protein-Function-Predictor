@@ -34,7 +34,7 @@ df, assoc = build_dataset(pred_dict)
 
 X = df[['Naive', 'Blast', 'InterPro']].to_numpy().astype('float')
 
-groups = df.groupby('Protein id').size().to_frame('size')['size'].to_numpy()
+groups = df.groupby('Group').size().to_frame('size')['size'].to_numpy()
 
 pred = predict_groups(rank_model, X, groups)
 

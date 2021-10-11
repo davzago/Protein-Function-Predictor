@@ -50,7 +50,7 @@ params = {'objective': 'rank:pairwise', 'learning_rate': 0.01, 'max_depth': 4,
 X_train = df[['Naive', 'Blast', 'InterPro']].to_numpy().astype('float')
 y_train = df['Label'].to_numpy().astype('int')
 
-groups = df.groupby('Protein id').size().to_frame('size')['size'].to_numpy()
+groups = df.groupby('Group').size().to_frame('size')['size'].to_numpy()
 
 rank_model = xgb.sklearn.XGBRanker(**params)    
 

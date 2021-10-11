@@ -260,9 +260,10 @@ def predict_groups(model, data, groups):
     for g in groups:
         dX = xgb.DMatrix(data[index:index+g,:])
         prediction = model.predict(dX)
-        prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
+        #prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
         pred = [*pred, *prediction]
         index += g
+    pred = (pred - min(pred)) / (max(pred) - min(pred))
     return np.array(pred)
 
 def scores_mean(list_of_scores):
@@ -297,18 +298,18 @@ def save_predictions(preds, prot_ids, go_terms, groups, n_prot, output_path):
     prot_len = len(prot_ids)
     preds_len = len(preds)
     n = 1
-    g = int(math.ceil(len(groups) / n_prot))
-    e = 0
+    div = math.ceil(len(groups) / n_prot) 
+    j = 0
     if prot_len == preds_len and go_len == prot_len:
-        for i in range (0,g):
+        for i in range(0,div):
             start = i * n_prot
-            end = start + n_prot - 1 
-            s = e
-            e = sum(groups[start:end])
-            if end > go_len:
-                end = go_len - 1
-            m = np.array([prot_ids[s:e], go_terms[s:e], preds[s:e]]).T
-            np.savetxt(output_path + '/' + "predictions" + str(n) + ".txt", m, delimiter='\t', fmt='%s')
+            end = start + n_prot 
+            g = sum(groups[start:end])
+            e = j + g
+            m = np.array([prot_ids[j:e], go_terms[j:e], preds[j:e]]).T
+            test = set(prot_ids[j:e])
+            np.savetxt(output_path + '/' + "predictions"+ str(n) +".txt", m, delimiter='\t', fmt='%s')
+            j = e
             n += 1
     else:
         raise Exception("the provided arrays do not have the same length")
