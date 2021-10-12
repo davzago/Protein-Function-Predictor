@@ -28,9 +28,9 @@ model_name = args.model_name
 if not os.path.isdir(output_path):
     os.mkdir(output_path)
 
-ip_set = parse_interpro_set(interpro_set)
+ip_dict = parse_interpro_list(interpro_set)
 ontology = parse_ontology(ontology_file)
-X, y, ip_dict, go_dict, prot_dict = parse_dataset(dataset_file, ip_set, ontology)
+X, y, ip_dict, go_dict, prot_dict = parse_dataset(dataset_file, ip_dict, ontology)
 
 
 #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42, shuffle=True)

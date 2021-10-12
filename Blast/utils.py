@@ -45,7 +45,6 @@ def get_goa_pids(goa_file):
             uniprot.add(div[0])
     return uniprot
 
-
 def get_blast_pids(blast_file):
     """
     parses the ref file and returns a list of protein ids

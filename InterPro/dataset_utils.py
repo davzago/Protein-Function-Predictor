@@ -3,7 +3,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import csc_matrix
 import os
 
-def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
+def create_dataset(interPro_file, reference_dict, ontology, interpro_dict):
     """
     Takes interpro assocs and a reference file and returns a dataset  
     NB since n = #go terms classifiers will be needed the dataset will contain n label cols
@@ -19,8 +19,8 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     ontology : dict
         {go_id : list(parents)}
 
-    interpro_ids_set : set
-        set containing all the interpro ids
+    interpro_ids_set : dict
+        dict containing all the interpro ids and corresponding index
 
     Returns
     -------
@@ -48,7 +48,7 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     prot_idx = 0
     prot_indexes = dict()
 
-    ip_dict = set_ip_indices(interpro_ids_set)
+    #ip_dict = set_ip_indices(interpro_ids_set)
     go_dict = set_ont_indices(ontology)
     # cycle on interpro file and check of is are contained in the reference
     # if so add the protein to the dataset by adding row and col indices to the arrays declared above
@@ -60,7 +60,7 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
                 # fill up matrix containing the features x_train
                 for ip_id in interpro_list.split('-'):
                     x_row.append(prot_idx)
-                    x_col.append(ip_dict[ip_id])
+                    x_col.append(interpro_dict[ip_id])
                     x_data.append(1)
                 # fill up the ground truth matrix y_train
                 for go_id in reference_dict[uniprot_id][1]:
@@ -79,13 +79,13 @@ def create_dataset(interPro_file, reference_dict, ontology, interpro_ids_set):
     y_data = np.array(y_data, dtype='bool')
 
     n_prot = prot_idx
-    n_ip_id = len(interpro_ids_set)
+    n_ip_id = len(interpro_dict.keys())
     n_go_terms = len(ontology) 
 
     x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
     y_train = csc_matrix((y_data, (y_row, y_col)), (n_prot, n_go_terms))
 
-    return x_train, y_train, ip_dict, go_dict, prot_indexes
+    return x_train, y_train, interpro_dict, go_dict, prot_indexes
 
 def parse_goa(goa_file): # this parses a goa already parsed
     """
@@ -372,25 +372,27 @@ def save_interpro_set(interpro_set, output_path):
         f.write(ip_id + '\n')
     f.close()
 
-def parse_interpro_set(ip_set_file):
+def parse_interpro_list(ip_set_file):
     """
     Parses a text file containing all the possible interpro ids and returns the corresponding set
 
     Parameters
     ----------
-    ip_set_file : ste
+    ip_set_file : str
         path to the interpro ids file
 
     Returns
     -------
-    ip_set : set
+    ip_dict : dict
         set containing all the possible interpro ids
     """
-    ip_set = set()
+    ip_dict = dict()
+    i = 0
     with open(ip_set_file) as f:
         for line in f:
-            ip_set.add(line.strip('\n'))
-    return ip_set
+            ip_dict.setdefault(line.strip('\n'), i)
+            i += 1
+    return ip_dict
 
 def propagate_terms(go_term_set, ont):
     """
