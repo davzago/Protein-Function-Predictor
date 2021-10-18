@@ -29,6 +29,9 @@ if not os.path.isdir(output_path):
     os.mkdir(output_path)
 
 ip_dict = parse_interpro_list(interpro_set)
+for k, v in ip_dict.items():
+    if v == 1 or v == 0:
+        print(k,v)
 ontology = parse_ontology(ontology_file)
 X, y, ip_dict, go_dict, prot_dict = parse_dataset(dataset_file, ip_dict, ontology)
 

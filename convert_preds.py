@@ -2,7 +2,7 @@ import os
 import argparse
 
 
-parser = argparse.ArgumentParser(description='XGBoost predictor')
+parser = argparse.ArgumentParser(description='changes the predictions with uniprot ids to cafa ids')
 parser.add_argument('predictions_folder', help='Path to the folder containing the predictions')
 parser.add_argument('mapping', help="mapping between cafa ids and uniprot ids")
 args = parser.parse_args()

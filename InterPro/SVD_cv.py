@@ -7,7 +7,9 @@ from sklearn.metrics import PrecisionRecallDisplay
 from sklearn.decomposition import TruncatedSVD
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.multioutput import MultiOutputClassifier
+from sklearn.utils.class_weight import compute_sample_weight
 from dataset_utils import *
 from parsers import *
 
@@ -26,14 +28,15 @@ output_path = args.output_path
 
 if not os.path.isdir(output_path):
     os.mkdir(output_path)
-    
+
 n_proteins = 1000
+n_go_terms = 10
 
 ip_dict = parse_interpro_list(interpro_set)
 ontology = parse_ontology(ontology_file)
 X, y, ip_dict, go_dict, prot_dict = parse_dataset(dataset_file, ip_dict, ontology)
-#X = X[:n_proteins]
-#y = y[:n_proteins]
+X = X[:n_proteins]
+y = y[:n_proteins]
 
 #y, y_XD, go_dict = remove_unused_go_terms(y, y[:1], go_dict)
 
@@ -45,17 +48,20 @@ for train_index, val_index in kf.split(X):
     y_train, y_val = y[train_index], y[val_index]
 
     y_train, y_val, _ = remove_unused_go_terms(y_train, y_val, go_dict)
+
+    #sample_weight = compute_sample_weight(class_weight="balanced", y=y_train.toarray())
+    #print((sample_weight>1).any())
     
-    lsa = TruncatedSVD(n_components=10000, n_iter=5, random_state=42)
+    """lsa = TruncatedSVD(n_components=10000, n_iter=5, random_state=42)
     X_train = lsa.fit_transform(X_train)
     print(X_train.shape)
     #print(lsa.explained_variance_ratio_)
     X_val = lsa.fit_transform(X_val)
-    print(X_val.shape)
+    print(X_val.shape)"""
     #print(lsa.explained_variance_ratio_)
 
 
-    clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100), n_jobs=8).fit(X_train, y_train.toarray())
+    clf = MultiOutputClassifier(LogisticRegression(random_state=42, verbose=0, solver='saga', max_iter=100), n_jobs=8).fit(X_train, y_train.toarray(), sample_weight=sample_weight)
     y_score = clf.predict_proba(X_val)
 
     y_score = reshape_prediction(y_score)

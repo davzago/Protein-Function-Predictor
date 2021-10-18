@@ -26,22 +26,28 @@ s = X.sum(axis=0)
 #prots = prot_dict.keys()
 #X = DataFrame(X, columns=list(ip_set))
 #X["Protein id"] = prots
+print("the number of samples is:", X.shape[0])
+print("the mean number of assignments for ip labels is:", s.sum()/len(s))
+print("the maximum number of assignment for a interpro label is:", max(s))
 
 count = 0
 for el in s:
-    if el < 5 :
+    if el < 40 :
         count += 1
-print("the number of interpro labels that appear less than 5 times is", count)
+print("the number of interpro labels that appear less than 40 times is", count)
 
 Y = Y.toarray()
 sy = Y.sum(axis=0)
 count = 0
 for el in sy:
-    if el < 5 :
+    if el < 40:
         count += 1
-print("the number of go terms that appear less than 5 times is", count)
+print("the number of go terms that appear less than 40 times is", count)
+print("the mean number of assignments for go temrs is:", sy.sum()/len(sy))
+print("the maximum number of assignment for a go term is:", max(sy))
 
-rows, cols = X.shape
+
+"""rows, cols = X.shape
 coupled_labels = []
 for j in range(0,cols):
     l = list(range(0,cols))
@@ -57,7 +63,7 @@ for i in range(0,rows):
                     except ValueError:
                         pass
 
-print(coupled_labels)
+print(coupled_labels)"""
 
                 
         

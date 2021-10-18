@@ -328,11 +328,13 @@ def parse_dataset(dataset_file, interpro_set, ontology):
             prot_indexes.setdefault(uniprot_id, (cafa_id, idx))
             # fill the training set matrix
             for ip_id in interpro_list.split('-'):
+                #if ip_id in ip_dict:
                 x_row.append(idx)
                 x_col.append(ip_dict[ip_id])
                 x_data.append(1)
             # fill the ground truth matrix
             for go_id in go_id_list.split('-'):
+                #if go_id in go_dict:
                 y_row.append(idx)
                 y_col.append(go_dict[go_id])
                 y_data.append(1)
