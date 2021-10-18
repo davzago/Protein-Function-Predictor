@@ -1,0 +1,30 @@
+## 1000 proteins
+
+**SVD 10 components**
+the Fmax for the fold 1 is: 0.48782435129740515
+the Fmax for the fold 2 is: 0.5035077169773502
+the Fmax for the fold 3 is: 0.5247382467665777
+the Fmax for the fold 4 is: 0.4695794201714985
+the Fmax for the fold 5 is: 0.5463108320251178
+
+**SVD 100 components**
+the Fmax for the fold 1 is: 0.4507622579316028
+the Fmax for the fold 2 is: 0.4694559025731683
+the Fmax for the fold 3 is: 0.48992129007487045
+the Fmax for the fold 4 is: 0.42924625179708364
+the Fmax for the fold 5 is: 0.518904233642744
+
+**NO SVD**
+the Fmax for the fold 1 is: 0.6340300696736341
+the Fmax for the fold 2 is: 0.6534462841740469
+the Fmax for the fold 3 is: 0.6738399462004034
+the Fmax for the fold 4 is: 0.6604687197365873
+the Fmax for the fold 5 is: 0.7034096216721157
+
+**SVD 200 components**
+
+the Fmax for the fold 1 is: 0.4531480311644557
+the Fmax for the fold 2 is: 0.4569154228855721
+the Fmax for the fold 3 is: 0.4908796108633968
+the Fmax for the fold 4 is: 0.42457627118644065
+the Fmax for the fold 5 is: 0.519796505197965

@@ -1,6 +1,5 @@
 from parsers import parse_dict, parse_dict_to_array, parse_features
 from dataset_utils import *
-from dataset_utils import parse_interpro_set, reverse_dict, save_prediction, set_ip_indices
 import argparse
 import numpy as np
 import os
@@ -25,12 +24,12 @@ if not os.path.isdir(output_path):
     os.mkdir(output_path)
 
 clf = load(model)
-ip_set = parse_interpro_set(interpro_set)
+ip_dict = parse_interpro_list(interpro_set)
 #go_dict = parse_dict(terms_dict)
 #go_array = reverse_dict(go_dict)
 go_array = parse_dict_to_array(terms_dict)
 
-X, ip_dict, prot_dict = parse_features(features, ip_set)
+X, ip_dict, prot_dict = parse_features(features, ip_dict)
 
 pred = clf.predict_proba(X)
 

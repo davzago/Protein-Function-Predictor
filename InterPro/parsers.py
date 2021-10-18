@@ -75,7 +75,7 @@ def parse_ontology(obo_file_path):
 
     return go_terms
 
-def parse_features(dataset_file, interpro_set):
+def parse_features(dataset_file, ip_dict):
     """
     Parses a dataset file created with the function save_dataset() and returns the same structures as create_dataset()
 
@@ -84,8 +84,8 @@ def parse_features(dataset_file, interpro_set):
     dataset_file : str
         path to the dataset file
 
-    interpro_ids_set : set
-        set containing all the interpro ids
+    ip_dict : dict
+        {ip_id : index}
 
     Returns
     -------
@@ -99,7 +99,6 @@ def parse_features(dataset_file, interpro_set):
         {cafa_id : index}
     """
     
-    ip_dict = set_ip_indices(interpro_set)
     prot_indexes = dict()
     idx = 0
     x_row = []
@@ -113,9 +112,10 @@ def parse_features(dataset_file, interpro_set):
             prot_indexes.setdefault(uniprot_id, idx)
             # fill the training set matrix
             for ip_id in interpro_list.split('-'):
-                x_row.append(idx)
-                x_col.append(ip_dict[ip_id])
-                x_data.append(1)
+                if ip_id in ip_dict:
+                    x_row.append(idx)
+                    x_col.append(ip_dict[ip_id])
+                    x_data.append(1)
             idx += 1
     
     x_row = np.array(x_row)
@@ -123,7 +123,7 @@ def parse_features(dataset_file, interpro_set):
     x_data = np.array(x_data, dtype='bool')
 
     n_prot = idx
-    n_ip_id = len(interpro_set)
+    n_ip_id = len(list(ip_dict.keys()))
 
     x_train = csr_matrix((x_data, (x_row, x_col)), (n_prot, n_ip_id))
 
