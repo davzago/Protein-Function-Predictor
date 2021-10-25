@@ -25,6 +25,9 @@ if not os.path.isdir(output_path):
 
 clf = load(model)
 ip_dict = parse_interpro_list(interpro_set)
+for k, v in ip_dict.items():
+    if v == 1 or v == 0:
+        print(k,v)
 #go_dict = parse_dict(terms_dict)
 #go_array = reverse_dict(go_dict)
 go_array = parse_dict_to_array(terms_dict)

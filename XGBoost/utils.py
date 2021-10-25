@@ -260,10 +260,10 @@ def predict_groups(model, data, groups):
     for g in groups:
         dX = xgb.DMatrix(data[index:index+g,:])
         prediction = model.predict(dX)
-        #prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
+        prediction = (prediction - min(prediction)) / (max(prediction) - min(prediction))
         pred = [*pred, *prediction]
         index += g
-    pred = (pred - min(pred)) / (max(pred) - min(pred))
+    #pred = (pred - min(pred)) / (max(pred) - min(pred))
     return np.array(pred)
 
 def scores_mean(list_of_scores):
